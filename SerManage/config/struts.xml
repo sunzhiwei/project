@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+	<!-- 配置为开发模式 -->
+	<constant name="struts.devMode" value="true" />
+	<!-- 配置扩展名为action -->
+	<constant name="struts.action.extension" value="action" />
+	<!-- 配置主题 -->
+	<constant name="struts.ui.theme" value="simple" />
+	<!-- 让OGNL中可以使用静态的方法 -->
+	<constant name="struts.ognl.allowStaticMethodAccess" value="true" />
+	
+	<package name="default" namespace="/" extends="json-default">
+	<interceptors>
+			<!-- 声明一个拦截器-->
+			<interceptor name="checkSecurity" class="com.gome.sermanage.interceptor.checkSecurityInterceptor"></interceptor>
+
+			<!-- 重新定义defaultStack拦截器栈，需要先验证访问路径（其中这个全局拦截器，应用于所有的action） -->
+			<interceptor-stack name="defaultStack">
+				<interceptor-ref name="checkSecurity" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+		</interceptors>
+	
+	   <global-results>
+	        <result name="math-exception">/jsp/exception/exception.jsp</result>
+	        <result name="tologin">/jsp/home/index.jsp</result>
+      </global-results>
+	   <global-exception-mappings>
+		<exception-mapping result="math-exception"
+			exception="java.lang.ArithmeticException" />
+		<exception-mapping result="math-exception"
+			exception="java.lang.Exception" />
+        </global-exception-mappings>
+	
+		<!-- 首页 -->
+		<action name="homeAction_*" class="homeAction" method="{1}">
+			<result name="{1}">/jsp/home/{1}.jsp</result>
+		</action>
+
+		<action name="userAction_*" class="userAction" method="{1}">
+			<result name="home">/jsp/home/home.jsp</result>
+			<result name="tologin">index.jsp</result>
+			<result name="addUserUI">/jsp/user/addUserUI.jsp</result>
+			<result name="editUserUI">/jsp/user/editUserUI.jsp</result>
+			<result name="toList">/jsp/user/userlist.jsp</result>
+			<result name="queryPageJson" type="json">
+				<param name="root">pagination</param>
+		    </result>
+		</action>
+		
+		<action name="serverAction_*" class="serverAction" method="{1}">
+		<result name="addServerUI">/jsp/server/addServerUI.jsp</result>
+		<result name="editServerUI">/jsp/server/editServerUI.jsp</result>
+		<result name="toList">/jsp/server/serverlist.jsp</result>
+		<result name="overview">/jsp/server/overview.jsp</result>
+		<result name="DBServerArray" type="json">
+		      <param name="root">DBServerArray</param>
+	       </result>
+	       <result name="APPServerArray" type="json">
+		      <param name="root">APPServerArray</param>
+	       </result>
+		<result name="column" type="json">
+		      <param name="root">column</param>
+	       </result>
+		<result name="queryPageJson" type="json">
+				<param name="root">pagination</param>
+		</result>
+		</action>
+	</package>
+
+</struts>
