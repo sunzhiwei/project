@@ -1,0 +1,18 @@
+package com.gome.gmhx.jbpm.activityBehaviour;
+
+import org.jbpm.api.activity.ActivityBehaviour;
+import org.jbpm.api.activity.ActivityExecution;
+
+
+public class SettlementOfAccountsBehaviour implements ActivityBehaviour {
+
+	@Override
+	public void execute(ActivityExecution execution) throws Exception {
+		
+		//TODO：结算
+		String key = execution.getProcessInstance().getKey().split("_")[1];
+		System.out.println("======服务单："+key+"结算==========");
+		
+	}
+
+}

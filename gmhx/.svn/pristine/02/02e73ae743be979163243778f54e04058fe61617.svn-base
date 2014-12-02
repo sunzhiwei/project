@@ -1,0 +1,20 @@
+package com.gome.gmhx.jbpm;
+
+/**
+* @ClassName: JBPMTransactions
+* @Description: jbpm中线的名称
+* @author A18ccms a18ccms_gmail_com
+* @date 2014年8月27日 下午4:57:11
+*
+*/
+public interface JbpmTransactions {
+	
+	public static String transactionTemporary = "0";//暂存
+	public static String transactionSubmit = "1";//提交
+	public static String transactionPass  =  "2";//审批通过
+	public static String transactionRefuse = "3";//审批拒绝
+	public static String transactionCancel = "4";//取消
+	public static String transactionRetract = "5";//撤回
+	public static String transactiontermination = "6";//终止
+
+}

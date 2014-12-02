@@ -1,0 +1,36 @@
+package com.gome.gmhx.service.workflow.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.entity.vo.HxJBPMOrderVO;
+import com.gome.gmhx.service.workflow.HxWorkFlowService;
+
+@Service("hxWorkFlowService")
+public class HxWorkFlowServiceImpl implements HxWorkFlowService {
+
+	@Override
+	public List<Map<String, Object>> getWorkPageList(Page page) {
+		List<Map<String, Object>> listOrder=new ArrayList<Map<String, Object>>();
+		for(int i=0;i<10;i++){
+			 Map<String, Object> map=new HashMap<String, Object>();
+			 map.put("applicant", "申请人"+i);
+			 map.put("applicanttime", new Date());
+			 map.put("operator", "操作人"+i);
+			 map.put("operatortime", new Date());
+			 map.put("operatorresult", "同意");
+			 map.put("ordercode", "code"+i);
+			 map.put("processcode", "流程模型"+i);
+			 map.put("status", "提交");
+			 listOrder.add(map);
+		}
+		return listOrder;
+	}
+
+}

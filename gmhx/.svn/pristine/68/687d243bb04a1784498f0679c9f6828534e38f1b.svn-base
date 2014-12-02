@@ -1,0 +1,510 @@
+package com.gome.gmhx.jbpm;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.management.RuntimeErrorException;
+
+import org.jbpm.api.ExecutionService;
+import org.jbpm.api.ProcessDefinition;
+import org.jbpm.api.ProcessInstance;
+import org.jbpm.api.RepositoryService;
+import org.jbpm.api.TaskQuery;
+import org.jbpm.api.TaskService;
+import org.jbpm.api.task.Participation;
+import org.jbpm.api.task.Task;
+import org.jbpm.pvm.internal.client.ClientProcessInstance;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.orm.hibernate3.HibernateTemplate;
+import org.springframework.stereotype.Service;
+
+
+/*
+ * 服务说明：
+ * 1.所有的流程启动以最高版本号，即通过流程定义的key启动。
+ * 2.任务轨迹暂不支持会签的情况，系统暂无此需求。
+ * 3.任务实体需实现JBPMWorkEntity 接口，流程实例的key值为workEntityType-workEntityId的约定形式
+ * 4.为了兼容一用户多岗的情况，系统的用户标识为岗位类型+岗位id+用户名
+ * 
+ * */
+
+/**
+* @ClassName: JbpmService
+* @Description: jbpm工作流统一接口
+* @author liuchao43
+* @date Aug 27, 2014 1:51:04 PM
+*
+*/
+@Service("jbpmService")
+public class JbpmService {
+	@Resource
+	private RepositoryService repositoryService;
+	@Resource
+	private ExecutionService executionService;
+	@Resource
+	private TaskService taskService;
+	@Resource
+	private HibernateTemplate hibernateTemplate;
+	@Resource
+	private SqlSessionTemplate sqlSessionTemplate;
+	
+	/**
+	* @Title: startProcessInstanceByKey
+	* @Description:启动工作流，业务主键为type-id形式
+	* @param @param processDefineKey流程定义的key 已最高版本号启动
+	* @param @param jBPMWorkEntity
+	* @return void 返回类型
+	* @throws
+	*/
+	public void startProcessInstanceByKey(String processDefineKey,JbpmWorkEntity jBPMWorkEntity){
+		Map<String,Object> variables = new HashMap<String,Object>();
+		String createUser = "";
+		if(jBPMWorkEntity.getCreateUser() !=null&&!"".equals(jBPMWorkEntity.getCreateUser())){
+			createUser = jBPMWorkEntity.getCreateUser();
+		}else{
+			if(processDefineKey.startsWith("system")){
+				createUser = this.getCurrentUsername(CurrentSysUser.systemPositon);
+			}else if(processDefineKey.startsWith("fitting")){
+				createUser = this.getCurrentUsername(CurrentSysUser.fittingPositon);
+			}
+		}
+		variables.put("createUser", createUser);
+		ProcessInstance pi =  executionService.startProcessInstanceByKey(processDefineKey,variables,jBPMWorkEntity.getWorkEntityType()+"-"+jBPMWorkEntity.getWorkEntityId());
+		ClientProcessInstance cpi = (ClientProcessInstance) pi ;
+		jBPMWorkEntity.setProcessIntanceId(pi.getId());
+		this.recordTaskTrajectoryAndUpdateStatus(jBPMWorkEntity,JbpmTransactions.transactionSubmit,"提交申请");
+	}
+	
+	/**
+	* @Title: startProcessInstanceByKey
+	* @Description:启动工作流，业务主键为type-id形式
+	* @param @param processDefineKey流程定义的key 已最高版本号启动
+	* @param @param jBPMWorkEntity
+	* @param @param variables 设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	public void startProcessInstanceByKey(String processDefineKey,JbpmWorkEntity jBPMWorkEntity,Map<String,Object> variables){
+		String createUser = "";
+		if(jBPMWorkEntity.getCreateUser() !=null&&!"".equals(jBPMWorkEntity.getCreateUser())){
+			createUser = jBPMWorkEntity.getCreateUser();
+		}else{
+			if(processDefineKey.startsWith("system")){
+				createUser = this.getCurrentUsername(CurrentSysUser.systemPositon);
+			}else if(processDefineKey.startsWith("fitting")){
+				createUser = this.getCurrentUsername(CurrentSysUser.fittingPositon);
+			}
+		}
+		variables.put("createUser", createUser);
+		ProcessInstance pi =  executionService.startProcessInstanceByKey(processDefineKey,variables,jBPMWorkEntity.getWorkEntityType()+"-"+jBPMWorkEntity.getWorkEntityId());
+		ClientProcessInstance cpi = (ClientProcessInstance) pi ;
+		jBPMWorkEntity.setProcessIntanceId(pi.getId());
+		this.recordTaskTrajectoryAndUpdateStatus(jBPMWorkEntity,(String)variables.get("outGoingName")==null?JbpmTransactions.transactionSubmit:(String)variables.get("outGoingName"),"提交申请");
+	}
+	
+	/**
+	* @Title: startProcessInstanceByKey
+	* @Description:启动工作流，业务主键为type-id形式
+	* @param @param processDefineKey流程定义的key 已最高版本号启动
+	* @param @param jBPMWorkEntity
+	* @param @param variables 设定文件
+	* @param @param approveComment 设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	public void startProcessInstanceByKey(String processDefineKey,JbpmWorkEntity jBPMWorkEntity,Map<String,Object> variables,String applyComment){
+		String createUser = "";
+		if(jBPMWorkEntity.getCreateUser() !=null&&!"".equals(jBPMWorkEntity.getCreateUser())){
+			createUser = jBPMWorkEntity.getCreateUser();
+		}else{
+			if(processDefineKey.startsWith("system")){
+				createUser = this.getCurrentUsername(CurrentSysUser.systemPositon);
+			}else if(processDefineKey.startsWith("fitting")){
+				createUser = this.getCurrentUsername(CurrentSysUser.fittingPositon);
+			}
+		}
+		variables.put("createUser", createUser);
+		ProcessInstance pi =  executionService.startProcessInstanceByKey(processDefineKey,variables,jBPMWorkEntity.getWorkEntityType()+"-"+jBPMWorkEntity.getWorkEntityId());
+		ClientProcessInstance cpi = (ClientProcessInstance) pi ;
+		jBPMWorkEntity.setProcessIntanceId(pi.getId());
+		this.recordTaskTrajectoryAndUpdateStatus(jBPMWorkEntity,(String)variables.get("outGoingName")==null?JbpmTransactions.transactionSubmit:(String)variables.get("outGoingName"),applyComment);
+	}
+	
+	/**
+	* @Title: startProcessInstanceById
+	* @Description:启动工作流(默认已最高版本号启动，此方法废弃)，业务主键为type-id形式
+	* @param @param processDefineKey流程定义的id id=key-version 
+	* @param @param jBPMWorkEntity
+	* @param @param variables 设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	@Deprecated
+	public void startProcessInstanceById(String processDefineId,JbpmWorkEntity jBPMWorkEntity,Map<String,Object> variables,String approveComment){
+		throw new RuntimeException("暂不支持");
+	}
+	
+
+	/**
+	* @Title: findAllMyTaskWorkEntityId
+	* @Description: TODO(这里用一句话描述这个方法的作用)
+	* @param @return 设定文件
+	* @return Map<String,List<String>> 返回类型
+	* @throws
+	*/
+	public Map<String,List<String>> findAllMyTaskWorkEntityId(){
+		List<Task> allTasks = new ArrayList<Task>();
+		List<Task> sysTasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowSysUserId()).list();
+		List<Task> fittingTasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowFittingUserId()).list();
+		allTasks.addAll(sysTasks);
+		allTasks.addAll(fittingTasks);
+		return findProcessIntancenKeyByTaskIds(allTasks);
+	}
+	
+
+	/**
+	* @Title: findAllMyTaskWorkEntityId
+	* @Description: TODO(这里用一句话描述这个方法的作用)
+	* @param @param activityName
+	* @param @return 设定文件
+	* @return Map<String,List<String>> 返回类型
+	* @throws
+	*/
+	public Map<String,List<String>> findAllMyTaskWorkEntityId(String activityName){
+		List<Task> allTasks = new ArrayList<Task>();
+		List<Task> sysTasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowSysUserId()).activityName(activityName).list();
+		List<Task> fittingTasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowFittingUserId()).activityName(activityName).list();
+		allTasks.addAll(sysTasks);
+		allTasks.addAll(fittingTasks);
+		return findProcessIntancenKeyByTaskIds(allTasks);
+	}
+	
+
+	/**
+	* @Title: findMyTaskWorkEntityId
+	* @Description: TODO(这里用一句话描述这个方法的作用)
+	* @param @param workEntityType
+	* @param @return 设定文件
+	* @return List<String> 返回类型
+	* @throws
+	*/
+	public  List<String> findMyTaskWorkEntityId(String workEntityType){
+		List<Task> tasks = null;
+		if(workEntityType.startsWith("system")){
+			tasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowSysUserId()).list();
+		}else{
+			tasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowFittingUserId()).list();
+		}
+		return findProcessIntancenKeyByTaskIds(tasks,workEntityType);
+	}
+	
+
+	/**
+	* @Title: findMyTaskWorkEntityId
+	* @Description: TODO(这里用一句话描述这个方法的作用)
+	* @param @param workEntityType
+	* @param @param processDefinitionKey
+	* @param @return 设定文件
+	* @return List<String> 返回类型
+	* @throws
+	*/
+	public  List<String> findMyTaskWorkEntityId(String workEntityType,String processDefinitionKey){
+		List<ProcessDefinition> pds = this.repositoryService.createProcessDefinitionQuery().processDefinitionKey(processDefinitionKey).list();
+		List<Task> allTasks = new ArrayList<Task>();
+		for(ProcessDefinition pd:pds){
+			List<Task> tasks = null;
+			if(workEntityType.startsWith("system")){
+				tasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowSysUserId()).processDefinitionId(pd.getDeploymentId()).list();
+			}else{
+				tasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowFittingUserId()).processDefinitionId(pd.getDeploymentId()).list();
+			}
+			allTasks.addAll(tasks);
+		}
+		return findProcessIntancenKeyByTaskIds(allTasks,workEntityType);
+	}
+	
+
+	/**
+	* @Title: findMyTaskWorkEntityId
+	* @Description: TODO(这里用一句话描述这个方法的作用)
+	* @param @param workEntityType
+	* @param @param processDefinitionKey
+	* @param @param activityName
+	* @param @return 设定文件
+	* @return List<String> 返回类型
+	* @throws
+	*/
+	public  List<String> findMyTaskWorkEntityId(String workEntityType,String processDefinitionKey,String activityName){
+		List<ProcessDefinition> pds = this.repositoryService.createProcessDefinitionQuery().processDefinitionKey(processDefinitionKey).list();
+		List<Task> allTasks = new ArrayList<Task>();
+		for(ProcessDefinition pd:pds){
+			List<Task> tasks = null;
+			if(workEntityType.startsWith("system")){
+				tasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowSysUserId()).processDefinitionId(pd.getDeploymentId()).activityName(activityName).list();
+			}else{
+				tasks = taskService.createTaskQuery().candidate(CurrentSysUser.getCurrentSysUser().workFlowFittingUserId()).processDefinitionId(pd.getDeploymentId()).activityName(activityName).list();
+			}
+			allTasks.addAll(tasks);
+		}
+		return findProcessIntancenKeyByTaskIds(allTasks,workEntityType);
+	}
+	
+	/**
+	* @Title: findProcessIntancenKeyByTaskIds
+	* @Description: TODO(这里用一句话描述这个方法的作用)
+	* @param @param tasks
+	* @param @return 设定文件
+	* @return Object 返回类型  若指定workEntityType 返回该类型的id集合 未指定返回map(类型:id集合)
+	* @throws
+	*/
+	private List<String> findProcessIntancenKeyByTaskIds(List<Task> tasks,String workEntityType){
+		Map<String,List<String>> keys = this.findProcessIntancenKeyByTaskIds(tasks);
+		if(keys!=null){
+			return keys.get(workEntityType);
+		}else{
+			return null;
+		}
+	}
+	
+	/**
+	* @Title: findProcessIntancenKeyByTaskIds
+	* @Description: TODO(这里用一句话描述这个方法的作用)
+	* @param @param tasks
+	* @param @param workEntityType特定的实体类型
+	* @param @return 设定文件
+	* @return Object 返回类型  若指定workEntityType 返回该类型的id集合 未指定返回map(类型:id集合)
+	* @throws
+	*/
+	private Map<String,List<String>> findProcessIntancenKeyByTaskIds(List<Task> tasks){
+		if(tasks.isEmpty()){
+			return null;
+		}
+		StringBuffer sb = new StringBuffer();
+		for(Task t:tasks){
+			sb.append("'"+t.getId()+"',");
+		}
+		String idString = sb.toString().substring(0,sb.length()-1);
+		String hql = "select e.processInstance.key from TaskImpl t,ProcessInstance p where t.processInstance.id = p.id and t.id in ("+idString+")";
+		List<String> resultList = hibernateTemplate.find(hql);
+		
+		
+		Map<String,List<String>> keys = new HashMap<String,List<String>>();
+		for(String result:resultList){
+			String[] ss = result.split("-");
+			if(keys.get(ss[0])==null){
+				List<String> l = new ArrayList<String>();
+				l.add(ss[1]);
+				keys.put(ss[0],l);
+			}else{
+				keys.get(ss[0]).add(ss[1]);
+			}
+			
+		}
+		return keys;
+	}
+	
+	/**
+	* @Title: completeTask
+	* @Description: TODO 触发任务流转
+	* @param @param processIntanceId
+	* @param @param outGoing
+	* @param @param variables 设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	public void completeTask(JbpmWorkEntity jBPMWorkEntity,String outGoing,String approveComment){
+		this.completeTask(jBPMWorkEntity, outGoing, approveComment,  new HashMap());
+	}
+	
+	/**
+	* @Title: completeTask
+	* @Description: TODO 触发任务流转
+	* @param @param processIntanceId
+	* @param @param outGoing
+	* @param @param variables 设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	public void completeTask(JbpmWorkEntity jBPMWorkEntity,String outGoing,String approveComment,Map<String,Object> variables){
+		String positionType  ="";
+		if(jBPMWorkEntity.getProcessIntanceId().startsWith("system")){
+			positionType  = CurrentSysUser.systemPositon;
+			variables.put("prevUser", this.getCurrentUsername(CurrentSysUser.systemPositon));
+		}else if(jBPMWorkEntity.getProcessIntanceId().startsWith("fitting")){
+			positionType  = CurrentSysUser.fittingPositon;
+			variables.put("prevUser",this.getCurrentUsername(CurrentSysUser.fittingPositon));
+		}
+		Task task = taskService.createTaskQuery().candidate(getCurrentUsername(positionType)).processInstanceId(jBPMWorkEntity.getProcessIntanceId()).uniqueResult();
+		if(task!=null){
+			taskService.completeTask(task.getId(),outGoing,variables);
+		}else{
+			throw new RuntimeException("操作失败！");
+		}
+		this.recordTaskTrajectoryAndUpdateStatus(jBPMWorkEntity,outGoing,approveComment);
+	}
+	/**
+	* @Title: delProcecessInstance
+	* @Description: TODO删除申请单时删除流程实例
+	* @param @param processIntanceId 设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	public void delProcecessInstance(String processIntanceId){
+		this.executionService.deleteProcessInstanceCascade(processIntanceId);
+	}
+	/**
+	* @Title: taskTask
+	* @Description: 多人共享任务锁定
+	* @param  设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	public void  takeTask(String processIntanceId ){
+		String positionType  ="";
+		if(processIntanceId.startsWith("sys")){
+			positionType  = CurrentSysUser.systemPositon;
+		}else if(processIntanceId.startsWith("fitting")){
+			positionType  = CurrentSysUser.fittingPositon;
+		}
+		//一个user在一个流程实例中最多有一个任务
+		Task task = taskService.createTaskQuery().candidate(getCurrentUsername(positionType)).processInstanceId(processIntanceId).uniqueResult();
+		if(task!=null){
+			taskService.takeTask(task.getId(), getCurrentUsername(positionType));
+		}else{
+			throw new RuntimeException("操作失败！");
+		}
+	}
+	
+	/**
+	* @Title: recordTaskTrajectory
+	* @Description: 保存任务轨迹
+	* @param @param jBPMWorkEntity
+	* @param @param processDefinitionKey
+	* @param @param outGoingName 设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	private void recordTaskTrajectoryAndUpdateStatus(JbpmWorkEntity jBPMWorkEntity,String outGoingName,String approveComment){
+		
+		String positionType  ="";
+		if(jBPMWorkEntity.getProcessIntanceId().startsWith("system")){
+			positionType  = CurrentSysUser.systemPositon;
+		}else if(jBPMWorkEntity.getProcessIntanceId().startsWith("fitting")){
+			positionType  = CurrentSysUser.fittingPositon;
+		}
+		//暂无对会签的支持，任务一个任务实例指向一个节点，只有一个任务
+		//查询任务流转后的流程实例的对应情况
+		ProcessInstance  pi = this.executionService.createProcessInstanceQuery().processInstanceId(jBPMWorkEntity.getProcessIntanceId()).uniqueResult();
+		JbpmTaskTrajectory tt = new JbpmTaskTrajectory();
+		tt.setCurrentActivity(jBPMWorkEntity.getStatus());
+		if(pi!=null){
+			ClientProcessInstance cpi = (ClientProcessInstance)pi;
+			Task task = this.taskService.createTaskQuery().processDefinitionId(pi.getId()).uniqueResult();
+			List<Participation> participations = this.taskService.getTaskParticipations(task.getId());
+			if(!participations.isEmpty()){
+				tt.setNextParticipant(participations.toString().substring(1,participations.toString().length()-1));
+			}else{
+				tt.setNextParticipant("无");
+			}
+			tt.setNextActivity(cpi.getActivity().getName());
+			jBPMWorkEntity.setStatus(cpi.getActivity().getName());
+		}else{
+			jBPMWorkEntity.setStatus(JbpmWorkEntityStatus.status_end);
+			tt.setNextActivity(JbpmWorkEntityStatus.status_end);
+		}
+		tt.setCreateDate(new Date());
+		tt.setOutGoingName(outGoingName);
+		tt.setApplyUser(jBPMWorkEntity.getCreateUser());
+		tt.setApplyTime(jBPMWorkEntity.getApplyTime());
+		tt.setOutGoingName(outGoingName);
+		tt.setParticipant(getCurrentUsername(positionType));
+		tt.setProcessInstanceId(jBPMWorkEntity.getProcessIntanceId());
+		tt.setWorkEntityId(jBPMWorkEntity.getWorkEntityId());
+		tt.setWorkEntityType(jBPMWorkEntity.getWorkEntityType());
+		tt.setProcessDefinitionKey(jBPMWorkEntity.getProcessIntanceId().split("-")[0]);
+		tt.setApproveComment(approveComment);
+		this.sqlSessionTemplate.insert("com.gome.gmhx.dao.jbpm.TaskTrajectoryMapper", tt);
+	}
+	/**
+	* @Title: searchTaskTrajectory
+	* @Description: 任务轨迹查询
+	* @param @param workEntityId
+	* @param @return 设定文件
+	* @return List<TaskTrajectory> 返回类型
+	* @throws
+	*/
+	public List<JbpmTaskTrajectory> searchTaskTrajectory(String workEntityId,String workEntityType){
+		return null;
+	}
+	
+	/**
+	* @Title: 管理员结束任务
+	* @Description: TODO(这里用一句话描述这个方法的作用)
+	* @param @param jBPMWorkEntity 设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	public void terminationTask(JbpmWorkEntity jBPMWorkEntity){
+		this.executionService.signalExecutionById(jBPMWorkEntity.getProcessIntanceId(), JbpmTransactions.transactionRetract);
+		this.recordTaskTrajectoryAndUpdateStatus(jBPMWorkEntity,JbpmTransactions.transactiontermination,"管理员结束！");
+	}
+	
+	private String getCurrentUsername(String potisionType){
+		if(CurrentSysUser.fittingPositon.equals(potisionType)){
+			return CurrentSysUser.getCurrentSysUser().workFlowSysUserId();
+		}else if(CurrentSysUser.systemPositon.equals(potisionType)){
+			return CurrentSysUser.getCurrentSysUser().workFlowFittingUserId();
+		}
+		return null;
+	}
+	
+	/**
+	* @Title: setExecutionVariable
+	* @Description: 设置流程变量
+	* @param @param executionId
+	* @param @param name
+	* @param @param value 设定文件
+	* @return void 返回类型
+	* @throws
+	*/
+	public void setExecutionVariable(String executionId,String name,String value){
+		this.executionService.setVariable(executionId, name, value);
+	}
+	
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
+
+	public void setRepositoryService(RepositoryService repositoryService) {
+		this.repositoryService = repositoryService;
+	}
+
+	public ExecutionService getExecutionService() {
+		return executionService;
+	}
+
+	public void setExecutionService(ExecutionService executionService) {
+		this.executionService = executionService;
+	}
+
+	public TaskService getTaskService() {
+		return taskService;
+	}
+
+	public void setTaskService(TaskService taskService) {
+		this.taskService = taskService;
+	}
+	
+	public HibernateTemplate getHibernateTemplate() {
+		return hibernateTemplate;
+	}
+
+	public void setHibernateTemplate(HibernateTemplate hibernateTemplate) {
+		this.hibernateTemplate = hibernateTemplate;
+	}
+
+}

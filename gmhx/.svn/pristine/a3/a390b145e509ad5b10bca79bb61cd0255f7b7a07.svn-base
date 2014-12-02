@@ -1,0 +1,203 @@
+package com.gome.gmhx.service.servicemanage.impl;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.common.util.UUIDGenerator;
+import com.gome.gmhx.dao.servicemanage.HxInstallProjectServiceDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceCustomerDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceProductDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceProjectDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceTicketDao;
+import com.gome.gmhx.entity.HxServiceCustomer;
+import com.gome.gmhx.entity.HxServiceProduct;
+import com.gome.gmhx.entity.HxServiceProject;
+import com.gome.gmhx.entity.HxServiceTicket;
+import com.gome.gmhx.entity.SysUser;
+import com.gome.gmhx.entity.vo.HxServiceTicketVO;
+import com.gome.gmhx.service.servicemanage.HxInstallProjectService;
+
+@Service("hxInstallProjectService")
+public class HxInstallProjectServiceImpl implements HxInstallProjectService {
+	
+	@Resource
+	HxServiceCustomerDao hxServiceCustomerDao;
+	
+	@Resource
+	HxServiceProductDao hxServiceProductDao;
+	
+	@Resource
+	HxServiceTicketDao hxServiceTicketDao;
+	
+	@Resource
+	HxServiceProjectDao hxServiceProjectDao;
+	
+	
+	@Resource
+	HxInstallProjectServiceDao hxInstallProjectServiceDao;
+	
+
+	@Override
+	public List<Map<String, Object>> getServiceInstallReceiptPageList(Page page) {
+		return hxServiceTicketDao.getServiceTicketPageList(page);
+	}
+
+	@Override
+	public void saveInstallProject(HxServiceTicketVO serviceTicketVO, SysUser sysUser) {
+		HxServiceCustomer serviceCustomer = serviceTicketVO.getServiceCustomer();
+		HxServiceProduct serviceProduct = serviceTicketVO.getServiceProduct();
+		HxServiceTicket serviceTicket = serviceTicketVO.getServiceTicket();
+		// 生成用户ID
+		String cusotmerID = UUIDGenerator.getUUID();
+		serviceCustomer.setCustomerType("02");
+		serviceCustomer.setCustomerId(cusotmerID);
+		serviceCustomer.setCreateManC(sysUser.getUserAccount());
+		serviceCustomer.setCreateTimeC(new Date());
+		serviceCustomer.setCreateOrganizationC(sysUser.getCompanyId());
+		hxServiceCustomerDao.insertServiceCustomer(serviceCustomer);
+		
+		List<HxServiceProject> projects = serviceTicketVO.getServiceProjects();
+		if(projects != null && !projects.isEmpty()){
+			String serviceID = "";
+			Integer sequence = hxServiceTicketDao.getMaxSequence();
+			for(HxServiceProject project : projects){
+				// 生成产品ID
+				String productID = UUIDGenerator.getUUID();
+				serviceProduct.setCustomerId(cusotmerID);
+				serviceProduct.setProductId(productID);
+				serviceProduct.setMachineType(project.getMachineType());
+				serviceProduct.setInternalMachineCode1(project.getInternalMachineCode1());
+				serviceProduct.setInternalMachineCode2(project.getInternalMachineCode2());
+				serviceProduct.setExternalMachineCode(project.getExternalMachineCode());
+				serviceProduct.setInstallCardNum(project.getInstallCardNum());
+				serviceProduct.setInstallDate(project.getInstallDate());
+				serviceProduct.setCreateManP(sysUser.getUserAccount());
+				serviceProduct.setCreateTimeP(new Date());
+				serviceProduct.setCreateOrganizationP(sysUser.getCompanyId());
+				serviceProduct.setProductNote(project.getCommentP());
+				
+				SimpleDateFormat format = new SimpleDateFormat("yyMMdd");
+				String currentDateString = format.format(new Date());
+				
+				String str = "";
+				if(sequence!=null){
+					if(sequence<10000){
+						str = String.format("%04d", ++sequence); 
+					}else{
+						str = String.valueOf(++sequence);
+					}
+				}else{
+					sequence = 1 ;
+					str = String.format("%04d", sequence); 
+				}
+				serviceID = "IN-"+currentDateString + str;
+				
+				serviceTicket.setServiceId(serviceID);
+				serviceTicket.setCustomerId(cusotmerID);
+				serviceTicket.setProductId(productID);
+				serviceTicket.setSequence(sequence);
+				serviceTicket.setServiceType("02");
+				serviceTicket.setCreateManS(sysUser.getUserAccount());
+				serviceTicket.setCreateTimeS(new Date());
+				serviceTicket.setCreateOrganizationS(sysUser.getCompanyId());
+				serviceTicket.setServiceUnit(serviceProduct.getInstallUnit());
+				serviceTicket.setWarrantyPolicy(project.getWarrantyPolicy());
+				serviceTicket.setServiceMan(project.getInstaller());
+				serviceTicket.setIsDoubleInstall(project.getIsDoubleInstall());
+				serviceTicket.setDelayFee(project.getDelayFee());
+				serviceTicket.setOtherFee(project.getOtherFee());
+				
+				hxServiceProductDao.insertServiceProduct(serviceProduct);
+				hxServiceTicketDao.insertServiceTicket(serviceTicket);
+				
+			}
+		}
+	}
+
+	@Override
+	public Map<String, Object> getInstallProjectById(String serviceId) {
+		return hxServiceTicketDao.selectServiceTicketByPrimaryKey(serviceId);
+	}
+
+	@Override
+	public List<Map<String, Object>> getProjects(String serviceId) {
+		return hxServiceProjectDao.selectProjects(serviceId);
+	}
+
+	@Override
+	public void updateInstallProject(HxServiceTicketVO serviceTicketVO, SysUser sysUser) {
+		HxServiceCustomer serviceCustomer = serviceTicketVO.getServiceCustomer();
+		HxServiceProduct serviceProduct = serviceTicketVO.getServiceProduct();
+		HxServiceTicket serviceTicket = serviceTicketVO.getServiceTicket();
+		// 更新人信息
+		serviceCustomer.setAlterTimeC(new Date());
+		serviceCustomer.setAlterManC(sysUser.getUserAccount());
+		serviceCustomer.setAlterOrganizationC(sysUser.getCompanyId());
+		
+		hxServiceCustomerDao.updateServiceCustomer(serviceCustomer);
+		
+		List<HxServiceProject> projects = serviceTicketVO.getServiceProjects();
+		if(projects != null && !projects.isEmpty()){
+			for(HxServiceProject project : projects){
+				
+				serviceProduct.setMachineType(project.getMachineType());
+				serviceProduct.setInternalMachineCode1(project.getInternalMachineCode1());
+				serviceProduct.setInternalMachineCode2(project.getInternalMachineCode2());
+				serviceProduct.setExternalMachineCode(project.getExternalMachineCode());
+				serviceProduct.setInstallCardNum(project.getInstallCardNum());
+				serviceProduct.setInstallDate(project.getInstallDate());
+				serviceProduct.setCreateManP(sysUser.getUserAccount());
+				serviceProduct.setCreateTimeP(new Date());
+				serviceProduct.setCreateOrganizationP(sysUser.getCompanyId());
+				serviceProduct.setProductNote(project.getCommentP());
+				serviceProduct.setAlterTimeP(new Date());
+				serviceProduct.setAlterManP(sysUser.getUserAccount());
+				serviceProduct.setAlterOrganizationP(sysUser.getCompanyId());
+				
+				serviceTicket.setCreateManS(sysUser.getUserAccount());
+				serviceTicket.setCreateTimeS(new Date());
+				serviceTicket.setCreateOrganizationS(sysUser.getCompanyId());
+				serviceTicket.setServiceUnit(serviceProduct.getInstallUnit());
+				serviceTicket.setWarrantyPolicy(project.getWarrantyPolicy());
+				serviceTicket.setServiceMan(project.getInstaller());
+				serviceTicket.setIsDoubleInstall(project.getIsDoubleInstall());
+				serviceTicket.setDelayFee(project.getDelayFee());
+				serviceTicket.setOtherFee(project.getOtherFee());
+				serviceTicket.setAlterTimeS(new Date());
+				serviceTicket.setAlterManS(sysUser.getUserAccount());
+				serviceTicket.setAlterOrganizationS(sysUser.getCompanyId());
+				
+				hxServiceProductDao.updateServiceProduct(serviceProduct);
+				hxServiceTicketDao.updateServiceTicketByPrimaryKeySelective(serviceTicket);
+			}
+		}
+	}
+
+	@Override
+	public void deleteServiceInstallReceipt(String serviceId) {
+		hxInstallProjectServiceDao.deleteServiceInstallProjectByPrimaryKey(serviceId);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

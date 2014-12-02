@@ -1,0 +1,22 @@
+package com.gome.common.util;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class OrderNumber {
+	    public static final String PREFIX = "HX_";
+	    private static long code;
+
+	    public static void main(String[] args) {
+	      
+	    }
+
+	    public static synchronized String nextCode() {
+	        code++;
+	        String str = new SimpleDateFormat("yyyyMMdd").format(new Date());
+	        long m = Long.parseLong((str)) * 10000;//这里如果一天订单多的话可以用一万或更大
+	        m += code;
+	        return PREFIX + m;
+	    }
+	
+
+}

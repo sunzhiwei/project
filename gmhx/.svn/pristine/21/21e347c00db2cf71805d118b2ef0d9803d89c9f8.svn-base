@@ -1,0 +1,31 @@
+package com.gome.gmhx.dao.materialmanage;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.entity.HxParcelDelivery;
+import com.gome.gmhx.entity.HxParcelReceipt;
+
+
+@Repository("hxParcelReceiptDao")
+public interface HxParcelReceiptDao {
+	List<Map<String, Object>> getHxParcelReceiptPageList(Page page);
+	
+	void addHxParcelReceipt(HxParcelDelivery hxParcelReceipt);
+	
+	HxParcelDelivery getHxParcelReceiptById(String HxParcelDelivery);
+	
+	void updateHxParcelReceipt(HxParcelDelivery HxParcelDelivery);
+	
+	List<Map<String, Object>> getHxParcelReceiptExport(HxParcelDelivery hxParcelReceipt);
+	
+	HxParcelDelivery getShowById(String orgId);
+
+	void updateHxCurrentStock(HxParcelDelivery hxParcelReceipt);
+	
+	List<Map<String, Object>> getHxParcelPageList(Page page);
+
+}

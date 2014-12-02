@@ -1,0 +1,177 @@
+package com.gome.gmhx.service.servicemanage.impl;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.common.util.UUIDGenerator;
+import com.gome.gmhx.dao.servicemanage.HxInstallProjectServiceDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceCustomerDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceProductDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceProjectDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceTicketDao;
+import com.gome.gmhx.entity.HxServiceCustomer;
+import com.gome.gmhx.entity.HxServiceProduct;
+import com.gome.gmhx.entity.HxServiceProject;
+import com.gome.gmhx.entity.HxServiceTicket;
+import com.gome.gmhx.entity.SysUser;
+import com.gome.gmhx.entity.vo.HxServiceTicketVO;
+import com.gome.gmhx.service.servicemanage.HxInstallProjectService;
+
+@Service("hxInstallProjectService")
+public class HxInstallProjectServiceImpl implements HxInstallProjectService {
+	
+	@Resource
+	HxServiceCustomerDao hxServiceCustomerDao;
+	
+	@Resource
+	HxServiceProductDao hxServiceProductDao;
+	
+	@Resource
+	HxServiceTicketDao hxServiceTicketDao;
+	
+	@Resource
+	HxServiceProjectDao hxServiceProjectDao;
+	
+	
+	@Resource
+	HxInstallProjectServiceDao hxInstallProjectServiceDao;
+	
+
+	@Override
+	public List<Map<String, Object>> getServiceInstallReceiptPageList(Page page) {
+		return hxServiceTicketDao.getServiceTicketPageList(page);
+	}
+
+	@Override
+	public String saveInstallProject(HxServiceTicketVO serviceTicketVO, SysUser sysUser) {
+		HxServiceCustomer serviceCustomer = serviceTicketVO.getServiceCustomer();
+		HxServiceProduct serviceProduct = serviceTicketVO.getServiceProduct();
+		HxServiceTicket serviceTicket = serviceTicketVO.getServiceTicket();
+		// 生成服务单号
+		String cusotmerID = UUIDGenerator.getUUID();
+		String productID = UUIDGenerator.getUUID();
+		String serviceID = "";
+		SimpleDateFormat format = new SimpleDateFormat("yyMMdd");
+		String currentDateString = format.format(new Date());
+		Integer sequence = hxServiceTicketDao.getMaxSequence();
+		String str = "";
+		if(sequence!=null){
+			if(sequence<10000){
+				str = String.format("%04d", ++sequence); 
+			}else{
+				str = String.valueOf(++sequence);
+			}
+		}else{
+			sequence = 1 ;
+			str = String.format("%04d", sequence); 
+		}
+		serviceID = "IN-"+currentDateString + str;
+		// 用户  默认工程机用户
+		serviceCustomer.setCustomerType("02");
+		serviceCustomer.setCustomerId(cusotmerID);
+		serviceCustomer.setCreateManC(sysUser.getUserName());
+		serviceCustomer.setCreateTimeC(new Date());
+		serviceCustomer.setCreateOrganizationC(sysUser.getCompanyName());
+		
+		// 产品
+		serviceProduct.setCustomerId(cusotmerID);
+		serviceProduct.setProductId(productID);
+		serviceProduct.setCreateManP(sysUser.getUserName());
+		serviceProduct.setCreateTimeP(new Date());
+		serviceProduct.setCreateOrganizationP(sysUser.getCompanyName());
+		// 服务单信息
+		serviceTicket.setServiceId(serviceID);
+		serviceTicket.setCustomerId(cusotmerID);
+		serviceTicket.setProductId(productID);
+		serviceTicket.setSequence(sequence);
+		serviceTicket.setServiceType("02");
+		serviceTicket.setCreateManS(sysUser.getUserName());
+		serviceTicket.setCreateTimeS(new Date());
+		serviceTicket.setCreateOrganizationS(sysUser.getCompanyId());
+		
+		hxServiceCustomerDao.insertServiceCustomer(serviceCustomer);
+		hxServiceProductDao.insertServiceProduct(serviceProduct);
+		hxServiceTicketDao.insertServiceTicket(serviceTicket);
+		// 工程机
+		List<HxServiceProject> projects = serviceTicketVO.getServiceProjects();
+		if(projects != null && !projects.isEmpty()){
+			Map<String, Object> projectsMap = new HashMap<String, Object>();
+			projectsMap.put("serviceId", serviceID);
+			projectsMap.put("list", projects);
+			hxServiceProjectDao.insertProjects(projectsMap);
+		}
+		return serviceID;
+	}
+
+	@Override
+	public Map<String, Object> getInstallProjectById(String serviceId) {
+		return hxServiceTicketDao.selectServiceTicketByPrimaryKey(serviceId);
+	}
+
+	@Override
+	public List<Map<String, Object>> getProjects(String productId) {
+		return hxServiceProjectDao.selectProjects(productId);
+	}
+
+	@Override
+	public String updateInstallProject(HxServiceTicketVO serviceTicketVO, SysUser sysUser) {
+		HxServiceCustomer serviceCustomer = serviceTicketVO.getServiceCustomer();
+		HxServiceProduct serviceProduct = serviceTicketVO.getServiceProduct();
+		HxServiceTicket serviceTicket = serviceTicketVO.getServiceTicket();
+		// 更新人信息
+		serviceCustomer.setAlterTimeC(new Date());
+		serviceCustomer.setAlterManC(sysUser.getUserName());
+		serviceCustomer.setAlterOrganizationC(sysUser.getCompanyName());
+		
+		serviceProduct.setAlterTimeP(new Date());
+		serviceProduct.setAlterManP(sysUser.getUserName());
+		serviceProduct.setAlterOrganizationP(sysUser.getCompanyName());
+		
+		serviceTicket.setAlterTimeS(new Date());
+		serviceTicket.setAlterManS(sysUser.getUserName());
+		serviceTicket.setAlterOrganizationS(sysUser.getCompanyName());
+		
+		hxServiceCustomerDao.updateServiceCustomer(serviceCustomer);
+		hxServiceProductDao.updateServiceProduct(serviceProduct);
+		hxServiceTicketDao.updateServiceTicketByPrimaryKeySelective(serviceTicket);
+		
+		List<HxServiceProject> projects = serviceTicketVO.getServiceProjects();
+		if(projects != null && !projects.isEmpty()){
+			Map<String, Object> projectsMap = new HashMap<String, Object>();
+			projectsMap.put("serviceId", serviceTicket.getServiceId());
+			projectsMap.put("list", projects);
+			hxServiceProjectDao.deleteProjects(serviceTicket.getServiceId());
+			hxServiceProjectDao.insertProjects(projectsMap);
+		}
+		return serviceTicket.getServiceId();
+	}
+
+	@Override
+	public void deleteServiceInstallReceipt(String serviceId) {
+		hxInstallProjectServiceDao.deleteServiceInstallProjectByPrimaryKey(serviceId);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

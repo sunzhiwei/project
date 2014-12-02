@@ -1,0 +1,61 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="../../inc/header.jsp"%>
+<%@ include file="../../inc/resource.inc"%>
+<script type="text/javascript">
+	
+$(function() {
+	parent.$.messager.progress('close');
+});
+
+function update(){
+	var positionId = $("#positionId").val();
+	window.location.href="${ctx}/hxPosition/updateView/"+positionId;
+}
+
+function goBack(){
+	window.location.href="${ctx}/hxPosition/positionView";
+}
+
+function authority(){
+	var positionId = $("#positionId").val();
+	var fromType = $("#fromType").val();
+	window.location.href="${ctx}/hxPositionMenu/positionMenuView/"+ positionId+"?fromType="+fromType;
+}
+</script>
+		<form id="form" method="post">
+			<div style="background-color:#95b8e7; text-align:center; color:#fff; font-weight:bold; border-bottom: 1px solid #000;">
+				岗位详细信息
+			</div>
+			<input id="positionId" type="hidden" value="${position.positionId}"/>
+			<input id="fromType" type="hidden" value="${position.fromType}"/>
+			<table border=1 style="cellSpacing:1;cellPadding:3;width:100%;background-color:#eff5ff;border-collapse:collapse;">
+				<tr>
+					<td width="25%" align="center">岗位名称：</td>
+					<td width="25%"><label>${position.positionName}</label></td>
+					<td width="25%" align="center">岗位类型：</td>
+					<td width="25%">
+						<c:if test="${position.positionType==0}">
+							<label>普通岗</label>
+						</c:if>
+						<c:if test="${position.positionType==1}">
+							<label>总部物料岗</label>
+						</c:if>
+						<c:if test="${position.positionType==2}">
+							<label>分部物料岗</label>
+						</c:if>
+						<c:if test="${position.positionType==3}">
+							<label>网点物料岗</label>
+						</c:if>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div style="text-align:center;padding:5px">
+			<c:if test="${position.fromType=='0'}">
+	    		<a href="#" class="easyui-linkbutton"  data-options="iconCls:'icon-edit'"  onclick="update();">修改</a>
+	    	</c:if>
+	    	<a href="#" class="easyui-linkbutton" data-options="toggle:true,group:'g1',iconCls:'icon-save'" onclick="authority();">权限设置</a>
+	    	<a href="#" class="easyui-linkbutton" data-options="toggle:true,group:'g1',iconCls:'icon-back'" onclick="goBack();">返回</a>
+	</div>
+</div>

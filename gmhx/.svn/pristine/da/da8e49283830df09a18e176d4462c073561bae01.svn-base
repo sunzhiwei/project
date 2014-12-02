@@ -1,0 +1,81 @@
+package com.gome.gmhx.controller.workflow;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.gome.common.page.Page;
+import com.gome.common.util.JsonUtil;
+import com.gome.gmhx.entity.HxMaterialManage;
+import com.gome.gmhx.entity.vo.HxJBPMOrderVO;
+import com.gome.gmhx.jbpm.JbpmService;
+import com.gome.gmhx.jbpm.JbpmTransactions;
+import com.gome.gmhx.service.materialmanage.HxMaterialService;
+import com.gome.gmhx.service.workflow.HxWorkFlowService;
+
+@Controller
+@RequestMapping(value="/hxWorkFlow")
+public class HxWorkFlowController {
+	
+	@Resource
+	private HxWorkFlowService hxWorkFlowService;
+	
+	@Resource
+	private JbpmService jbpmService;
+	
+	@Resource
+	private HxMaterialService hxMaterialService;
+
+	@RequestMapping(value="/list")
+	public String workList(){
+		return "workflow/workList";
+	}
+	
+	@RequestMapping(value="/done")
+	public String workDone(){
+		return "workflow/workDone";
+	}
+	
+	@RequestMapping(value="/ing")
+	public String workIng(){
+		return "workflow/workIng";
+	}
+	
+	@RequestMapping(value="/monitoring")
+	public String workMonitoring(){
+		return "workflow/workMonitoring";
+	}
+	
+	@RequestMapping(value="/getWorkPageList", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getWorkPageList(Page page,HxJBPMOrderVO order) throws Exception{
+		page.setParam(order);
+		List<Map<String, Object>> list = hxWorkFlowService.getWorkPageList(page);
+		page.setTotalResult(10); //手动造些数据 
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/updateHxMaterialManage", produces="text/plain;charset=UTF-8")
+    public @ResponseBody String updateHxMaterialManage(HttpServletRequest request,String listNumber,String type) throws Exception{
+        String result = null;
+        try {
+            if("1".equals(type)){
+            	hxMaterialService.updateHxMaterialManage(listNumber,JbpmTransactions.transactionPass, "同意");
+            	result = "同意成功，该流程继续向下执行!";
+            }else{
+            	hxMaterialService.updateHxMaterialManage(listNumber,JbpmTransactions.transactionRefuse, "不同意");
+            	result = "不同意成功，该流程无法向下执行!";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            result = "服务器异常";
+        }
+        return result;
+    }
+}

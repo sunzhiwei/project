@@ -1,0 +1,204 @@
+package com.gome.gmhx.controller.sysconfig;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.gome.common.page.Page;
+import com.gome.common.util.JsonUtil;
+import com.gome.common.util.UUIDGenerator;
+import com.gome.gmhx.entity.EccGoodsCategory;
+import com.gome.gmhx.entity.HxPosition;
+import com.gome.gmhx.entity.HxUserPosition;
+import com.gome.gmhx.service.sysconfig.HxPositionService;
+import com.gome.gmhx.service.sysconfig.HxUserService;
+
+@Controller
+@RequestMapping(value="/hxPosition")
+public class HxPositionController {
+	@Resource
+	private HxPositionService positionService;
+	
+	@Resource
+	private HxUserService userService;
+	
+	@RequestMapping(value="/positionView")
+	public ModelAndView positionView(HttpServletRequest request){
+		ModelAndView mav = new ModelAndView("sysconfig/hxPosition/positionList");
+		String origin = request.getParameter("origin");//请求来源  ：  权限组：gome 恒信:  hx
+		mav.addObject("origin", origin);
+		return mav;
+	}
+	
+	@RequestMapping(value="/getPositionPageList", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getPositionPageList(HttpServletResponse response, Page page, HxPosition position,HttpServletRequest request) throws Exception{
+		String origin = request.getParameter("origin");//请求来源  ：  权限组：gome 恒信:  hx
+		position.setPositionOrigin(origin);
+		page.setParam(position);
+		List<Map<String, Object>> list = positionService.getPositionPageList(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/addView")
+	public ModelAndView addView(HttpServletRequest request){
+		ModelAndView mav = new ModelAndView("sysconfig/hxPosition/positionAdd");
+		String origin = request.getParameter("origin");//请求来源  ：  权限组：gome 恒信:  hx
+		mav.addObject("origin", origin);
+		return mav;
+	}
+	
+	@RequestMapping(value="addPosition")
+	@ResponseBody
+	public String addPosition(HxPosition position) {
+        try {
+        	String positionId = UUIDGenerator.getUUID();
+        	position.setPositionId(positionId);//设置主键
+        	String positionType = position.getPositionType();
+        	String positionCategoryIdTemp = position.getPositionCategoryId();
+        	if("1".equals(positionType)){//总部物料岗
+        		position.setOrgId("ZGS");//取创建的物料总部机构的id
+        		position.setPositionCode("WLZB");
+        	}
+        	position.setModifyDate(new Date());
+        	positionService.addPosition(position);
+			if (StringUtils.isNotEmpty(positionCategoryIdTemp)) {
+				String[] positionCategoryIdTempArr = positionCategoryIdTemp.split(",");
+				if(positionCategoryIdTempArr.length>0){
+					for(int i = 0; i < positionCategoryIdTempArr.length; i++){
+						HxPosition hp = new HxPosition();
+						if(StringUtils.isNotEmpty(positionCategoryIdTempArr[i])){
+							hp.setPositionCategoryId(positionCategoryIdTempArr[i]);
+							hp.setPositionId(positionId);
+							positionService.addPositionCategory(hp);
+						}
+					}
+				}
+			}
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+	
+	@RequestMapping(value="/updateView/{positionId}")
+	public ModelAndView updateView(@PathVariable(value = "positionId") String positionId,HttpServletRequest request){
+		ModelAndView mav = new ModelAndView("sysconfig/hxPosition/positionUpdate");
+		HxPosition position = positionService.getPositionById(positionId);
+		String origin = request.getParameter("origin");//请求来源  ：  权限组：gome 恒信:  hx
+		mav.addObject("position", position);
+		mav.addObject("origin", origin);
+		return mav;
+	}
+	
+	@RequestMapping(value="/updatePosition")
+	@ResponseBody
+	public String updatePosition(HxPosition position){
+		try {
+			String positionidTemp = position.getPositionId();
+			String positionType = position.getPositionType();
+			String positionCategoryIdTemp = position.getPositionCategoryId();
+			if("1".equals(positionType)){//总部物料岗
+        		position.setOrgId("ZGS");//取创建的物料总部机构的id
+        		position.setPositionCode("WLZB");
+        	}
+			position.setModifyDate(new Date());
+			positionService.updatePosition(position);
+			
+			if (StringUtils.isNotEmpty(positionidTemp)) {
+				positionService.deletePositionCategoryByPositionId(positionidTemp);
+			}
+			if (StringUtils.isNotEmpty(positionCategoryIdTemp)) {
+				String[] positionCategoryIdTempArr = positionCategoryIdTemp.split(",");
+				if(positionCategoryIdTempArr.length>0){
+					for(int i = 0; i < positionCategoryIdTempArr.length; i++){
+						HxPosition hp = new HxPosition();
+						if(StringUtils.isNotEmpty(positionCategoryIdTempArr[i])){
+							hp.setPositionCategoryId(positionCategoryIdTempArr[i]);
+							hp.setPositionId(positionidTemp);
+							positionService.addPositionCategory(hp);
+						}
+					}
+				}
+			}
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	@RequestMapping(value="/showView/{positionId}")
+	public ModelAndView showView(@PathVariable(value = "positionId") String positionId,HttpServletRequest request){
+		ModelAndView mav = new ModelAndView("sysconfig/hxPosition/positionShow");
+		String fromType = request.getParameter("fromType");
+		HxPosition position = null;
+		if("0".equals(fromType)){
+			position = positionService.getPositionById(positionId);//系统自建岗位
+		}else if("1".equals(fromType)){
+			List<HxPosition> positionList = positionService.getPositionByCode(positionId);//身份管理平台岗位
+			if(positionList!=null){
+				if(positionList.size()>0){
+					position = positionList.get(0);
+				}
+			}
+		}
+		mav.addObject("position", position);
+		return mav;
+	}
+	
+	@RequestMapping(value="/getPositionUserPageList", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getPositionUserPageList(HttpServletResponse response, Page page, HxUserPosition hxUserPosition) throws Exception{
+		page.setParam(hxUserPosition);
+		List<Map<String, Object>> list = userService.getPositionUserPageList(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/getPositionCategoryTree", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getPositionCategoryTree(){
+		List<EccGoodsCategory> categoryList = positionService.getPositionCategoryTree();
+        JSONArray array = new JSONArray();
+        for (EccGoodsCategory category : categoryList) {
+            JSONObject object = new JSONObject();
+            object.put("id", category.getClass_());
+            object.put("pId", category.getZsjfldm());
+            object.put("name", category.getKschl());
+            array.add(object);
+        }
+		return array.toString();
+	}
+	
+	@RequestMapping(value="/getPositionCategoryTreeData", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getPositionCategoryTreeData(HttpServletRequest request){
+		String positionId = request.getParameter("positionId");
+		List<EccGoodsCategory> categoryList = positionService.getPositionCategoryTreeData(positionId);
+		JSONArray array = new JSONArray();
+	    for (EccGoodsCategory category : categoryList) {
+	         JSONObject object = new JSONObject();
+	         if(category!=null){
+	        	 object.put("id", category.getClass_());
+		         array.add(object);
+	         }
+	     }
+		return array.toString();
+	}
+	
+}

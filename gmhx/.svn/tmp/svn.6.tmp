@@ -1,0 +1,29 @@
+package com.gome.gmhx.service.sysconfig;
+
+import java.util.List;
+import java.util.Map;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.entity.EccGoodsCategory;
+import com.gome.gmhx.entity.HxPosition;
+
+public interface HxPositionService {
+	
+	List<Map<String, Object>> getPositionPageList(Page page);
+	
+	void addPosition(HxPosition position);
+	
+	HxPosition getPositionById(String positionId);
+	
+	void updatePosition(HxPosition position);
+
+	List<HxPosition> getPositionByCode(String positionId);
+
+	List<EccGoodsCategory> getPositionCategoryTree();
+
+	List<EccGoodsCategory> getPositionCategoryTreeData(String positionId);
+
+	void addPositionCategory(HxPosition hp);
+
+	void deletePositionCategoryByPositionId(String positionId);
+}

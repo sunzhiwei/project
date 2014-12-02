@@ -1,0 +1,14 @@
+package com.gome.gmhx.jbpm;
+
+/**
+* @ClassName: JBPMActivities
+* @Description:JBPM业务实体的状态（流程的每一个任务节点对应一个状态。任务节点名即状态名）
+* @author liuchao
+* @date 2014年8月27日 下午4:57:37
+*/
+public interface JbpmWorkEntityStatus {
+	
+	public final String status_end = "0";
+	
+
+}

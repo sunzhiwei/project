@@ -1,0 +1,40 @@
+package com.gome.gmhx.schedule;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Component;
+
+import com.gome.gmhx.entity.HxOrganizationUnload;
+import com.gome.gmhx.service.sysconfig.HxOrganizationService;
+
+@Component
+public class UnloadOrganization {
+	@Resource
+	private HxOrganizationService hxOrganizationService;
+	
+	public void unloadOrganization() throws Exception{
+		hxOrganizationService.delOrganizationUnload();
+		List<Map<String, Object>> result = hxOrganizationService.queryAllOrganizationList();
+		if(result!=null){
+			if(result.size()>0){
+				for(Map<String, Object> map : result){
+					String id = (String) map.get("id");
+					String name = (String) map.get("name");
+					String pid = (String) map.get("pid");
+					String pname = (String) map.get("pname");
+					String interfaceDm = (String) map.get("interface");
+					HxOrganizationUnload hxOrganizationUnload = new HxOrganizationUnload();
+					hxOrganizationUnload.setId(id);
+					hxOrganizationUnload.setName(name);
+					hxOrganizationUnload.setPid(pid);
+					hxOrganizationUnload.setPname(pname);
+					hxOrganizationUnload.setInterfaceDm(interfaceDm);
+					hxOrganizationService.addOrganizationUnload(hxOrganizationUnload);
+				}
+			}
+		}
+	}
+}

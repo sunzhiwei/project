@@ -1,0 +1,93 @@
+package com.gome.gmhx.service.workflow.impl;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.common.util.SpringUtil;
+import com.gome.common.util.VeDate;
+import com.gome.gmhx.dao.materialmanage.HxMaterialDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceLongDistanceDao;
+import com.gome.gmhx.dao.workflow.JbpmTaskTrajectoryDao;
+import com.gome.gmhx.entity.HxMaterialManage;
+import com.gome.gmhx.entity.HxServiceLongDistance;
+import com.gome.gmhx.entity.HxUser;
+import com.gome.gmhx.entity.SysUser;
+import com.gome.gmhx.jbpm.CurrentSysUser;
+import com.gome.gmhx.jbpm.JbpmProcessDefinations;
+import com.gome.gmhx.jbpm.JbpmService;
+import com.gome.gmhx.jbpm.JbpmWorkEntityStatus;
+import com.gome.gmhx.service.servicemanage.HxLongDistanceService;
+import com.gome.gmhx.service.workflow.HxWorkFlowService;
+
+@Service("hxWorkFlowService")
+public class HxWorkFlowServiceImpl implements HxWorkFlowService {
+	@Resource
+	JbpmService jbpmService;
+
+	@Resource
+	JbpmTaskTrajectoryDao jbpmTaskTrajectoryDao;
+	
+	@Resource
+	HxMaterialDao hxMaterialDao;
+	
+	@Resource
+	HxServiceLongDistanceDao hxServiceLongDistanceDao;
+	
+	@Override
+	public List<Map<String, Object>> getWorkPageList(Page page) {
+		List<String> ids =   this.jbpmService.findAllMyTaskWorkEntityId();
+		if(ids!=null && ids.size()>0){
+			Map<String, Object>  map = (Map<String, Object>) page.getParam();
+			String idList="";
+			for(String id:ids){
+				idList+="'"+id+"',";
+			}
+			idList=idList.substring(0, idList.length()-1);
+			idList="("+idList+")";
+			map.put("ids", idList);
+			page.setParam(map);
+			return jbpmTaskTrajectoryDao.getWorkPageList(page);
+		}else
+			return null;
+		
+	}
+	@Override
+	public List<Map<String, Object>> getTaskTrajeCttoryPageList(Page page) {
+		return jbpmTaskTrajectoryDao.getTaskTrajeCttoryPageList(page);
+	}
+	@Override
+	public String processInstanceIdToVal(String processInstanceId) {
+		return jbpmTaskTrajectoryDao.processInstanceIdToVal(processInstanceId);
+	}
+	@Override
+	public void updateJbpmWorkEntity(String workEntityId,
+			String transactionpass, String approveComment, String orderType,String checkAgree) {
+		if(JbpmProcessDefinations.SERVICE.equals(orderType)){
+			 HxServiceLongDistance distanceApply = hxServiceLongDistanceDao.selectDistanceApplyByIdNotConverte(workEntityId);
+			 if(JbpmWorkEntityStatus.status_subDept_review.equals(distanceApply.getStatus())){
+				 distanceApply.setIsCenterCheckAgree(checkAgree);
+				 distanceApply.setCenterCheckComment(approveComment);
+				 distanceApply.setCenterCheckMan(CurrentSysUser.getCurrentSysUser().getUserName());
+				 distanceApply.setCenterCheckDate(new Date());
+			 }else if(JbpmWorkEntityStatus.status_headDept_review.equals(distanceApply.getStatus())){
+				 distanceApply.setIsHeadquartersCheckAgree(checkAgree);
+				 distanceApply.setHeadquartersCheckComment(approveComment);
+				 distanceApply.setHeadquartersCheckMan(CurrentSysUser.getCurrentSysUser().getUserName());
+				 distanceApply.setHeadquartersCheckDate(new Date());
+			 }
+			 this.jbpmService.completeTask(distanceApply, transactionpass, approveComment);
+			 hxServiceLongDistanceDao.updateLongDistanceApply(distanceApply);
+		}else if(JbpmProcessDefinations.MATERIAL.equals(orderType)){
+			HxMaterialManage hmm = this.hxMaterialDao.getHxMaterialManage(workEntityId);
+			this.jbpmService.completeTask(hmm, transactionpass, approveComment);
+			this.hxMaterialDao.updateHxMaterialManage(hmm);	
+		}
+	}
+
+}

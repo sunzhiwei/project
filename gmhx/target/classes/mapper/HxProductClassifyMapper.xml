@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gome.gmhx.dao.basicdata.HxProductClassifyDao">
+	<resultMap id="hxProductClassify" type="com.gome.gmhx.entity.HxProductClassify">
+		<result property="classifyCode" column="classify_code" jdbcType="VARCHAR"/>
+		<result property="classifyName" column="classify_name" jdbcType="VARCHAR"/>
+		<result property="power" column="power" jdbcType="VARCHAR"/>
+		<result property="parentCode" column="parent_code" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<select id="getHxProductClassifyTree" resultMap="hxProductClassify">
+		SELECT * FROM hx_product_classify ORDER BY classify_code
+	</select>
+	
+	<insert id="createHxProductClassify" parameterType="com.gome.gmhx.entity.HxProductClassify">
+		insert into hx_product_classify values (#{classifyCode}, #{classifyName}, #{power}, #{parentCode})
+	</insert>
+	
+	<update id="updateHxProductClassify" parameterType="hashmap">
+		update hx_product_classify
+		set classify_code = #{classifyCode},
+			classify_name = #{classifyName},
+			power = #{power}
+		where classify_code = #{classifyCodeOld}
+	</update>
+	
+	<delete id="delHxProductClassify" parameterType="string">
+		delete from hx_product_classify where classify_code = #{classifyCode}
+	</delete>
+</mapper>

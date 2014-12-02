@@ -1,0 +1,21 @@
+package com.gome.gmhx.jbpm.activityBehaviour;
+
+import org.jbpm.api.activity.ActivityBehaviour;
+import org.jbpm.api.activity.ActivityExecution;
+
+import com.gome.common.util.SpringUtil;
+import com.gome.gmhx.dao.servicemanage.HxServiceLongDistanceDao;
+
+
+public class MargeInstallationReceiptBillBehaviour implements ActivityBehaviour {
+
+	@Override
+	public void execute(ActivityExecution execution) throws Exception {
+		
+		//TODO：结算
+		String key = execution.getProcessInstance().getKey();
+		HxServiceLongDistanceDao serviceLongDistanceDao = (HxServiceLongDistanceDao) SpringUtil.getBean("hxServiceLongDistanceDao");
+		serviceLongDistanceDao.updateDistanceApplyEffective(key);
+	}
+
+}

@@ -1,0 +1,86 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<script type="text/javascript">
+</script>
+<div style="background-color:#95b8e7; text-align:left; color:#fff; font-weight:bold; border-bottom: 1px solid #000;">客户信息</div>
+<input id="service_id" type="hidden" value="${map.service_id }"/>
+<table border=1 style="cellSpacing:1;cellPadding:3;width:100%;background-color:#eff5ff;border-collapse:collapse">
+	<tr>
+		<td width="25%" align="center">客户姓名</td><td width="25%" ><label>${map.customer_name}</label></td>
+		<td width="25%" align="center">客户类别</td><td width="25%" >
+			<input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/khlb?value=${map.customer_type}', editable:false"/>
+		</td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">性别</td><td width="25%" >
+			<input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/xb?value=${map.customer_sex}', editable:false"/>
+		</td>
+		<td width="25%" align="center">会员卡号</td><td width="25%" ><label>${map.member_num }</label></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">省份</td><td width="25%" ><label>${map.member_num }</label></td>
+		<td width="25%" align="center">区号</td><td width="25%" ><label>${map.area_code }</label></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">手机</td><td width="25%" ><label>${map.phone }</label></td>
+		<td width="25%" align="center">固定电话</td><td width="25%" ><label>${map.telephone }</label></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">E_MAIL</td><td width="25%" ><label>${map.e_mail }</label></td>
+		<td width="25%" align="center">邮编</td><td width="25%" ><label>${map.postcode }</label></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">联系地址</td><td width="25%" ><label>${map.address }</label></td>
+		<td width="25%" align="center">备注</td><td width="25%" ><label>${map.note }</label></td>
+	</tr>
+</table>
+<div style="background-color:#95b8e7; text-align:left; color:#fff; font-weight:bold; border-bottom: 1px solid #000;">产品信息</div>
+<table border=1 style="cellSpacing:1;cellPadding:3;width:100%;background-color:#eff5ff;border-collapse:collapse">
+	<tr>
+		<td width="25%" align="center">购机日期<font color="red">*</font></td><td width="25%" ><label><fmt:formatDate value='${map.buy_date}' pattern='yyyy-MM-dd' /></label></td>
+		<td width="25%" align="center">安装单位<font color="red">*</font></td><td width="25%" ><label>${map.install_unit }</label></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">销售门店<font color="red">*</font></td><td width="25%" ><label>${map.sale_market }</label></td>
+		<td width="25%" align="center">安装省份<font color="red">*</font> </td><td width="25%" ><label>${map.install_province }</label></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">安装详细地址<font color="red">*</font></td><td width="25%" ><label>${map.install_detail_address }</label></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">工程名称<font color="red">*</font></td><td width="25%" ><label>${map.project_name }</label></td>
+		<td width="25%" align="center">合同编码<font color="red">*</font></td><td width="25%" ><label>${map.bargain_code }</label></td>
+	</tr>
+</table>
+<div style="background-color:#95b8e7; text-align:left; color:#fff; font-weight:bold; border-bottom: 1px solid #000;">客户评价</div>
+<table border=1 style="cellSpacing:1;cellPadding:3;width:100%;background-color:#eff5ff;border-collapse:collapse">
+	<tr>
+		<td width="25%" align="center">产品外观满意度<font color="red">*</font></td>
+		<td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/myd?value=${map.product_exterior_satisfaction}', editable:false"/></td>
+		
+		<td width="25%" align="center">产品外观重要性<font color="red">*</font></td>
+		<td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/zyx?value=${map.product_exterior_significance}', editable:false"/></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">产品质量满意度<font color="red">*</font></td><td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/myd?value=${map.quality_satisfaction}', editable:false"/></td>
+		<td width="25%" align="center">产品质量重要性<font color="red">*</font></td><td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/zyx?value=${map.quality_significance}', editable:false"/></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">价格满意度<font color="red">*</font></td><td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/myd?value=${map.price_satisfaction}', editable:false"/></td>
+		<td width="25%" align="center">价格重要性<font color="red">*</font></td><td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/zyx?value=${map.price_significance}', editable:false"/></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">服务满意度<font color="red">*</font></td><td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/myd?value=${map.service_satisfaction}', editable:false"/></td>
+		<td width="25%" align="center">服务重要性<font color="red">*</font></td><td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/zyx?value=${map.service_significance}', editable:false"/></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">生理感受满意度<font color="red">*</font></td><td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/myd?value=${map.physiology_satisfaction}', editable:false"/></td>
+		<td width="25%" align="center">生理感受重要性<font color="red">*</font></td><td width="25%" ><input class="easyui-combobox" disabled="disabled" data-options="url:'${ctx}/hxCode/getCombobox/zyx?value=${map.physiology_significance}', editable:false"/></td>
+	</tr>
+	<tr>
+		<td width="25%" align="center">备注</td><td width="25%" ><label>${map.comment_s }</label></td>
+	</tr>
+</table>
+<br/>
+<div class="easyui-layout" data-options="fit : true,border : false">
+	<table id="projectGrid"></table>
+</div>

@@ -1,0 +1,158 @@
+package com.gome.gmhx.controller.sysconfig;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.gome.common.page.Page;
+import com.gome.common.util.JsonUtil;
+import com.gome.gmhx.entity.HxUser;
+import com.gome.gmhx.entity.HxUserPosition;
+import com.gome.gmhx.entity.SysUser;
+import com.gome.gmhx.service.sysconfig.UserService;
+import com.gome.gmhx.service.wsdl.service.EmpService;
+import com.gome.gmhx.service.wsdl.service.JlAccountService;
+
+@Controller
+@RequestMapping(value="/hxUser")
+public class HxUserController {
+	@Resource
+	private UserService userService;
+	
+	@Resource
+	private EmpService empService;
+	
+	@Resource
+	private JlAccountService jlAccountService;
+	
+	@RequestMapping(value="/userView")
+	public String userView(){
+		return "sysconfig/hxUser/userList";
+	}
+	
+	@RequestMapping(value="/getUserPageList", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getUserList(HttpServletResponse response, Page page, HxUser user) throws Exception{
+		page.setParam(user);
+		List<Map<String, Object>> list = userService.getUserPageList(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/addView")
+	public ModelAndView addView(HttpServletRequest request){
+		ModelAndView mav = new ModelAndView("sysconfig/hxUser/userAdd");
+		String pageMarkup = request.getParameter("pageMarkup");
+		mav.addObject("pageMarkup", pageMarkup);
+		return mav;
+	}
+	
+	@RequestMapping(value="addUser")
+	@ResponseBody
+	public String addUser(HxUser user) {
+        try {
+        	user.setUserCreateDate(new Date());//设置创建日期
+        	userService.addUser(user);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+	
+	@RequestMapping(value="/updateView/{userLoginName}")
+	public ModelAndView updateView(@PathVariable(value = "userLoginName") String userLoginName,HttpServletRequest request){
+		ModelAndView mav = new ModelAndView("sysconfig/hxUser/userUpdate");
+		String pageMarkup = request.getParameter("pageMarkup");
+		HxUser user = userService.getUserById(userLoginName);
+		mav.addObject("pageMarkup", pageMarkup);
+		mav.addObject("user", user);
+		return mav;
+	}
+	
+	@RequestMapping(value="/updateUser")
+	@ResponseBody
+	public String updateUser(HxUser user){
+		try {
+			user.setUserUpdateDate(new Date());//设置修改日期
+			userService.updateUser(user);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	@RequestMapping(value="/showView/{userLoginName}")
+	public ModelAndView showView(@PathVariable(value = "userLoginName") String userLoginName, String pageMarkup, String fromType){
+		ModelAndView mav = null;
+		HxUser user = null;
+		SysUser sysuser = null;
+		if("3".equals(fromType)){
+			mav = new ModelAndView("sysconfig/hxUser/userShow");
+			user = userService.getShowById(userLoginName);
+			mav.addObject("user", user);
+		}else if("2".equals(fromType)){
+			mav = new ModelAndView("sysconfig/hxUser/userPeripheralShow");
+			sysuser = jlAccountService.selectAccountByPrimaryKey(userLoginName);
+			mav.addObject("sysuser", sysuser);
+		}else if("1".equals(fromType)){
+			mav = new ModelAndView("sysconfig/hxUser/userPeripheralShow");
+			sysuser = empService.getAccountByApAccount(userLoginName);
+			mav.addObject("sysuser", sysuser);
+		}
+		mav.addObject("fromType", fromType);
+		mav.addObject("pageMarkup", pageMarkup);
+		return mav;
+	}
+	
+	@RequestMapping(value="/modifyPwdView/{userLoginName}")
+	public ModelAndView modifyPwdView(@PathVariable(value = "userLoginName") String userLoginName,HttpServletRequest request){
+		ModelAndView mav = new ModelAndView("sysconfig/hxUser/userModifyPwd");
+		String pageMarkup = request.getParameter("pageMarkup");
+		HxUser user = userService.getUserById(userLoginName);
+		mav.addObject("user", user);
+		mav.addObject("pageMarkup", pageMarkup);
+		return mav;
+	}
+	
+	@RequestMapping(value="/modifyUserPwd")
+	@ResponseBody
+	public String modifyUserPwd(HxUser user){
+		try {
+			HxUser userTemp = userService.getUserById(user.getUserLoginName());
+			userTemp.setUserLoginPassword(user.getUserLoginPassword());
+			userTemp.setUserPasswordChangeDate(new Date());//设置密码修改日期
+			userService.updateUser(userTemp);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	@RequestMapping(value="/getRolePageListByUserId", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getRolePageListByUserId(HttpServletResponse response, Page page, HxUser user) throws Exception{
+		page.setParam(user);
+		List<Map<String, Object>> list = userService.getRolePageListByUserId(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/getPositionPageListByUserLoginName", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getPositionPageListByUserLoginName(HttpServletResponse response, Page page, HxUserPosition userPosition) throws Exception{
+		page.setParam(userPosition);
+		List<Map<String, Object>> list = userService.getPositionPageListByUserLoginName(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+}

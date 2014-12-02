@@ -1,0 +1,213 @@
+package com.gome.gmhx.service.materialmanage.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.dao.materialmanage.HxMaterialDao;
+import com.gome.gmhx.dao.storeinfo.HxCurrentStockDao;
+import com.gome.gmhx.entity.HxCurrentStock;
+import com.gome.gmhx.entity.HxMaterialDetail;
+import com.gome.gmhx.entity.HxMaterialManage;
+import com.gome.gmhx.jbpm.JbpmProcessDefinations;
+import com.gome.gmhx.jbpm.JbpmService;
+import com.gome.gmhx.jbpm.JbpmTransactions;
+import com.gome.gmhx.jbpm.JbpmWorkEntityStatus;
+import com.gome.gmhx.service.materialmanage.HxMaterialService;
+
+@Service("hxMaterialService")
+public class HxMaterialSeviceImpl implements HxMaterialService {
+	@Resource
+	private HxMaterialDao hxMaterialDao;
+	@Resource
+	private HxCurrentStockDao hxCurrentStockDao;
+	@Resource
+	JbpmService jbpmService;
+
+	@Override
+	public List<String> getFittingBySuit(String suitModel) {
+		return hxMaterialDao.getFittingBySuit(suitModel);
+	}
+
+	@Override
+	public Map<String, Object> getFittingInfo(Map<String, Object> map) {
+		return hxMaterialDao.getFittingInfo(map);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void addHxMaterial(Map<String, Object> map) {
+		HxMaterialManage manage = (HxMaterialManage)map.get("manage");
+		hxMaterialDao.addHxMaterialManage(manage);
+		List<HxMaterialDetail> detailList = (List<HxMaterialDetail>)map.get("detail");
+		for(HxMaterialDetail hxMaterialDetail : detailList){
+			hxMaterialDetail.setListNumber(manage.getListNumber());
+		}
+		hxMaterialDao.addHxMaterialDetail(detailList);
+	}
+
+	@Override
+	public String getListNumber(String companyId) {
+		return hxMaterialDao.getListNumber(companyId);
+	}
+
+	@Override
+	public HxMaterialManage getHxMaterialManage(String listNumber) {
+		return hxMaterialDao.getHxMaterialManage(listNumber);
+	}
+
+	@Override
+	public String getFatherFittingOrgId(String fittingOrgId) {
+		return hxMaterialDao.getFatherFittingOrgId(fittingOrgId);
+	}
+
+	@Override
+	public List<Map<String, Object>> getHxMaterialPageList(Page page) {
+		return hxMaterialDao.getHxMaterialPageList(page);
+	}
+
+	@Override
+	public List<Map<String, Object>> getHxMaterialDetail(String listNumber) {
+//		return hxMaterialDao.getHxMaterialDetail(listNumber);
+		return hxMaterialDao.getHxMaterialDetail2(listNumber);
+
+	}
+
+	@Override
+	public void delHxMaterial(String listNumber) {
+		hxMaterialDao.delHxMaterialDetail(listNumber);
+		hxMaterialDao.delHxMaterialManage(listNumber);
+	}
+
+	@Override
+	public void updateStatus(Map<String, String> map) {
+		hxMaterialDao.updateStatus(map);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void updateCurrentStock(Map<String, Object> map) throws Exception {
+		String type = String.valueOf(map.get("authId"));
+		HxMaterialManage manage = (HxMaterialManage)map.get("manage");
+		if(type.indexOf("-n-") > 0){
+			map.put("isNew", 1);
+		}
+		if(type.indexOf("-o-") > 0){
+			map.put("isNew", 0);
+		}
+		if(type.indexOf("-rk-") > 0){
+			List<HxMaterialDetail> details = (List<HxMaterialDetail>)map.get("detail");
+			for(HxMaterialDetail hxMaterialDetail : details){
+				Map<String, Object> newMap = new HashMap<String, Object>();
+				newMap.put("fittingCode", hxMaterialDetail.getFittingCode());
+				newMap.put("isNew", map.get("isNew"));
+				newMap.put("companyId", manage.getReceiveCompany());
+				HxCurrentStock hxCurrentStock = hxMaterialDao.isExist(newMap);
+				
+				newMap.put("stock", hxMaterialDetail.getApplyCount());
+				if(hxCurrentStock == null){
+					if(type.startsWith("zb-")){
+						newMap.put("type", 0);
+					}
+					if(type.startsWith("fb-")){
+						newMap.put("type", 1);
+					}
+					if(type.startsWith("wd-")){
+						newMap.put("type", 2);
+					}
+					hxMaterialDao.insertRkCount(newMap);
+				}else{
+					hxMaterialDao.updateRkCount(newMap);
+				}
+			}
+		}
+		if(type.indexOf("-ck-") > 0){
+			map.put("companyId", manage.getSendCompany());
+			hxMaterialDao.updateCkCount(map);
+		}
+		Map<String, String> statusMap = new HashMap<String, String>();
+		statusMap.put("listNumber", manage.getListNumber());
+		statusMap.put("status", "03");
+		hxMaterialDao.updateStatus(statusMap);
+	}
+
+	@Override
+	public List<Map<String, Object>> getHxMaterialDetailForUpdate(Map<String, Object> map) {
+		return hxMaterialDao.getHxMaterialDetailForUpdate(map);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void updateHxMaterial(Map<String, Object> map) {
+		HxMaterialManage manage = (HxMaterialManage)map.get("manage");
+		hxMaterialDao.updateHxMaterialManage(manage);
+		List<HxMaterialDetail> detailList = (List<HxMaterialDetail>)map.get("detail");
+		for(HxMaterialDetail hxMaterialDetail : detailList){
+			hxMaterialDetail.setListNumber(manage.getListNumber());
+		}
+		hxMaterialDao.delHxMaterialDetail(manage.getListNumber());
+		hxMaterialDao.addHxMaterialDetail(detailList);
+	}
+
+	@Override
+	public void hxMaterialSend(String listNumber, String type) {
+		String processDefineKey = JbpmProcessDefinations.getProcessDefinations(type);
+		HxMaterialManage hmm = this.hxMaterialDao.getHxMaterialManage(listNumber);
+		this.jbpmService.startProcessInstanceByKey(processDefineKey, hmm);
+		this.hxMaterialDao.updateHxMaterialManage(hmm);
+	}
+
+	@Override
+	public void updateHxMaterialManage(String listNumber,String transactionpass, String type) {
+		HxMaterialManage hmm = this.hxMaterialDao.getHxMaterialManage(listNumber);
+		this.jbpmService.completeTask(hmm, transactionpass, type);
+		this.hxMaterialDao.updateHxMaterialManage(hmm);
+	}
+
+	@Override
+	public void updateHxMaterialDetails(ArrayList<HxMaterialDetail> list) {
+		if(list != null && list.size() >0){
+			String listNumber = list.get(0).getListNumber();
+			HxMaterialManage manage = this.hxMaterialDao.getHxMaterialManage(listNumber);
+			this.jbpmService.completeTask(manage, JbpmTransactions.transactionOperationComplete, "确认出库数量");
+			for (HxMaterialDetail detail : list) {
+				this.hxMaterialDao.updateHxMaterialDetail(detail);
+			}
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("status", JbpmWorkEntityStatus.status_out_bound);
+			map.put("listNumber", listNumber);
+			this.hxMaterialDao.updateStatus(map);
+		}
+	}
+
+	@Override
+	public void reduceStock(String listNumber) {
+		List<Map<String, Object >> list = this.hxMaterialDao.getHxMaterialDetail2(listNumber);
+		HxMaterialManage hmm = this.hxMaterialDao.getHxMaterialManage(listNumber);
+		this.jbpmService.completeTask(hmm, JbpmTransactions.transactionOperationComplete, "确认出库");
+		for (Map<String, Object> map : list) {
+			HxCurrentStock stock = new HxCurrentStock();
+			stock.setOrgId((String)map.get("send_company"));
+			stock.setFittingCode((String)map.get("fitting_code"));
+			Integer tmpCurrentStock = this.hxCurrentStockDao.getCurrentStock(stock);
+			Integer audit = (Integer)map.get("audit_count");
+			if(tmpCurrentStock < audit){
+				throw new RuntimeException(stock.getFittingCode()+" 出库量不足");
+			}
+			stock.setCountWay((Integer)map.get(("count_way") + audit));
+			stock.setStock(tmpCurrentStock - audit);
+			this.hxCurrentStockDao.updateHxCurrentStock(stock);
+		}
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("status", JbpmWorkEntityStatus.status_post_sending);
+		map.put("listNumber", listNumber);
+		this.hxMaterialDao.updateStatus(map);
+	}
+
+}

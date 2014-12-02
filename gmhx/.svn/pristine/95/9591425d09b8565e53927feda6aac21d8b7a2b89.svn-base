@@ -1,0 +1,12 @@
+package com.gome.gmhx.service.workflow;
+
+import java.util.List;
+import java.util.Map;
+
+import com.gome.common.page.Page;
+
+public interface HxWorkFlowService {
+
+	List<Map<String, Object>> getWorkPageList(Page page);
+
+}

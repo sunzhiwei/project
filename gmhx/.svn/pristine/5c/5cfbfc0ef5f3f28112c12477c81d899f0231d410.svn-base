@@ -1,0 +1,99 @@
+package com.gome.gmhx.controller.sysconfig;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.gome.common.page.Page;
+import com.gome.common.util.JsonUtil;
+import com.gome.common.util.UUIDGenerator;
+import com.gome.gmhx.entity.HxPosition;
+import com.gome.gmhx.service.sysconfig.HxPositionService;
+
+@Controller
+@RequestMapping(value="/hxPosition")
+public class HxPositionController {
+	@Resource
+	private HxPositionService positionService;
+	
+	@RequestMapping(value="/positionView")
+	public String roleView(){
+		return "sysconfig/hxPosition/positionList";
+	}
+	
+	@RequestMapping(value="/getPositionPageList", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getPositionPageList(HttpServletResponse response, Page page, HxPosition position) throws Exception{
+		page.setParam(position);
+		List<Map<String, Object>> list = positionService.getPositionPageList(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/addView")
+	public String addView(){
+		return "sysconfig/hxPosition/positionAdd";
+	}
+	
+	@RequestMapping(value="addPosition")
+	@ResponseBody
+	public String addPosition(HxPosition position) {
+        try {
+        	String positionId = UUIDGenerator.getUUID();
+        	position.setPositionId(positionId);//设置主键
+        	positionService.addPosition(position);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+	
+	@RequestMapping(value="/updateView/{positionId}")
+	public ModelAndView updateView(@PathVariable(value = "positionId") String positionId){
+		ModelAndView mav = new ModelAndView("sysconfig/hxPosition/positionUpdate");
+		HxPosition position = positionService.getPositionById(positionId);
+		mav.addObject("position", position);
+		return mav;
+	}
+	
+	@RequestMapping(value="/updatePosition")
+	@ResponseBody
+	public String updatePosition(HxPosition position){
+		try {
+			positionService.updatePosition(position);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	@RequestMapping(value="/showView/{positionId}")
+	public ModelAndView showView(@PathVariable(value = "positionId") String positionId,HttpServletRequest request){
+		ModelAndView mav = new ModelAndView("sysconfig/hxPosition/positionShow");
+		String fromType = request.getParameter("fromType");
+		HxPosition position = null;
+		if("0".equals(fromType)){
+			position = positionService.getPositionById(positionId);//系统自建岗位
+		}else if("1".equals(fromType)){
+			List<HxPosition> positionList = positionService.getPositionByCode(positionId);//身份管理平台岗位
+			if(positionList!=null){
+				if(positionList.size()>0){
+					position = positionList.get(0);
+				}
+			}
+		}
+		mav.addObject("position", position);
+		return mav;
+	}
+	
+}

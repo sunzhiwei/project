@@ -1,0 +1,127 @@
+package com.gome.gmhx.service.materialmanage.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.dao.materialmanage.HxMaterialDao;
+import com.gome.gmhx.dao.materialmanage.HxParcelDeliveryDao;
+import com.gome.gmhx.dao.materialmanage.HxParcelReceiptDao;
+import com.gome.gmhx.dao.storeinfo.HxCurrentStockDao;
+import com.gome.gmhx.entity.HxCurrentStock;
+import com.gome.gmhx.entity.HxMaterialManage;
+import com.gome.gmhx.entity.HxParcelDelivery;
+import com.gome.gmhx.entity.HxParcelReceipt;
+import com.gome.gmhx.jbpm.JbpmService;
+import com.gome.gmhx.jbpm.JbpmTransactions;
+import com.gome.gmhx.jbpm.JbpmWorkEntityStatus;
+import com.gome.gmhx.service.materialmanage.HxParcelReceiptService;
+
+@Service("hxParcelReceiptService")
+public class HxParcelReceiptServiceImpl implements HxParcelReceiptService {
+	@Resource
+	private HxParcelReceiptDao hxParcelReceiptDao;
+	@Resource
+	private HxCurrentStockDao hxCurrentStockDao;
+	@Resource
+	private HxParcelDeliveryDao hxParcelDeliveryDao;
+	@Resource
+	private JbpmService jbpmService;
+	@Resource
+	private HxMaterialDao hxMaterialDao;
+	
+	@Override
+	public List<Map<String, Object>> getHxParcelReceiptPageList(Page page) {
+			List<String> list = this.jbpmService.findMyTaskWorkEntityIdByActivityName(JbpmWorkEntityStatus.status_post_receipt);
+			List<Map<String, Object>> tmp = hxParcelDeliveryDao.getParcelDeliveryPageList(page);
+			List<Map<String, Object>> returnObj = new ArrayList<Map<String,Object>>();
+			for(Map<String, Object> m: tmp){
+				for(String s: list){
+					if(m.get("list_number").equals(s)){
+						returnObj.add(m);
+					}
+				}
+			}
+			return returnObj;
+	}
+
+	@Override
+	public void addHxParcelReceipt(HxParcelDelivery hxParcelReceipt) {
+		hxParcelReceiptDao.addHxParcelReceipt(hxParcelReceipt);
+	}
+
+	@Override
+	public HxParcelDelivery getHxParcelReceiptById(String orgId) {
+		return hxParcelReceiptDao.getHxParcelReceiptById(orgId);
+	}
+
+	@Override
+	public void updateHxParcelReceipt(HxParcelDelivery hxParcelReceipt) {
+		hxParcelReceiptDao.updateHxParcelReceipt(hxParcelReceipt);
+	}
+
+	@Override
+	public List<Map<String, Object>> getHxParcelReceiptExport(HxParcelDelivery hxParcelReceipt) {
+		return hxParcelReceiptDao.getHxParcelReceiptExport(hxParcelReceipt);
+	}
+
+	@Override
+	public HxParcelDelivery getShowById(String orgId) {
+		return hxParcelReceiptDao.getShowById(orgId);
+	}
+
+	@Override
+	public void updateHxCurrentStock(HxParcelDelivery hxParcelReceipt) {
+		hxParcelReceiptDao.updateHxCurrentStock(hxParcelReceipt);
+		
+	}
+
+	@Override
+	public List<Map<String, Object>> getHxParcelPageList(Page page) {
+		return hxParcelReceiptDao.getHxParcelPageList(page);
+	}
+
+	@Override
+	public void receiveStock(HxParcelDelivery delivery) {
+
+		String parcelCode = delivery.getParcelCode();
+		List<String> listNumbers = new ArrayList<String>();
+		HxParcelDelivery parcel = this.hxParcelDeliveryDao.selectByPrimaryKey(delivery.getParcelCode());
+		for (Map<String, Object> map : this.hxParcelDeliveryDao.selectMaterialsByCode(parcelCode)) {
+			listNumbers.add((String)map.get("list_number"));
+			HxMaterialManage hmm = hxMaterialDao.getHxMaterialManage((String)map.get("list_number"));
+			jbpmService.completeTask(hmm, JbpmTransactions.transactionOperationComplete, "邮包已收货");
+		}
+
+		for (String string : listNumbers) {
+			List<Map<String, Object >> list = this.hxMaterialDao.getHxMaterialDetail2(string);
+			for (Map<String, Object> map : list) {
+				HxCurrentStock stock = new HxCurrentStock();
+				stock.setOrgId((String)map.get("receive_company"));
+				stock.setFittingCode((String)map.get("fitting_code"));
+				Integer tmpCurrentStock = this.hxCurrentStockDao.getCurrentStock(stock);
+				Integer audit = (Integer)map.get("audit_count");
+				stock.setStock(tmpCurrentStock + audit);
+				this.hxCurrentStockDao.updateHxCurrentStock(stock);
+			}
+			
+			//更新申请单状态
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("status", JbpmWorkEntityStatus.status_end);
+			map.put("listNumber", string);
+			this.hxMaterialDao.updateStatus(map);
+		}
+		parcel.setState("03");
+		parcel.setUpdateDate(new Date());
+		parcel.setReceiveDate(new Date());
+		this.hxParcelDeliveryDao.updateParcelDelivery(parcel);	
+	}
+
+}

@@ -1,0 +1,378 @@
+package com.gome.gmhx.service.wsdl.service.impl;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.Resource;
+
+import org.apache.log4j.Logger;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.springframework.stereotype.Service;
+
+import com.gome.common.util.MD5EncryptUtils;
+import com.gome.common.util.SysConstant;
+import com.gome.common.util.SysUtils;
+import com.gome.common.util.UUIDGenerator;
+import com.gome.gmhx.dao.wsdl.CrmWebsiteDao;
+import com.gome.gmhx.entity.CrmWebsite;
+import com.gome.gmhx.entity.CustomerserviceSaleMapping;
+import com.gome.gmhx.entity.HxBarCodeRules;
+import com.gome.gmhx.entity.HxCodeBar;
+import com.gome.gmhx.entity.HxResetPassword;
+import com.gome.gmhx.service.wsdl.service.CrmWebsiteService;
+
+@Service("CrmWebsiteService")
+public class CrmWebsiteServiceImpl implements CrmWebsiteService {
+	@Resource
+	private CrmWebsiteDao crmWebsiteDao;
+
+	private Logger logger = Logger.getLogger(this.getClass());
+
+	@Override
+	public void insertCrmwebsite(List<CrmWebsite> list) {
+		crmWebsiteDao.insertCrmwebsite(list);
+	}
+
+	@Override
+	public void delCrmwebsite() {
+		crmWebsiteDao.delCrmwebsite();
+	}
+
+	@Override
+	public boolean validateBarCode(String brand, String category,
+			String productCode, String innerCode, String outerCode) {
+		if ("C02".equals(category)) {// 空调品类
+			if (isNull(productCode) || isNull(innerCode) || isNull(innerCode)) {
+				logger.info("为空");
+				return false;
+			} else {
+				int outerFlag = 0;
+				int innerFlag = 0;
+				
+				List<HxBarCodeRules> wRules = crmWebsiteDao.getHxBarCodeRulesByProductCode("W" + productCode);//外机
+				List<HxBarCodeRules> nRules = crmWebsiteDao.getHxBarCodeRulesByProductCode("N" + productCode);//内机
+				
+				for (HxBarCodeRules rule : wRules) {
+					if (rule.getBarCodeNumber() == outerCode.length()) {
+						outerFlag ++;
+						if(validateRule(rule.getOutsideMachine(), rule.getOutsideMachineContent(), outerCode)){
+							outerFlag ++;
+							if(validateRule(rule.getOutsideMachineOne(), rule.getOutsideMachineContentOne(), outerCode)){
+								outerFlag ++;
+								if(validateRule(rule.getOutsideMachineTwo(), rule.getOutsideMachineContentTwo(), outerCode)){
+									outerFlag ++;
+								}else{
+									outerFlag = 0;
+									continue;
+								}
+							}else{
+								outerFlag = 0;
+								continue;
+							}
+						}else{
+							outerFlag = 0;
+							continue;
+						}
+					} else {
+						continue;
+					}
+				}
+				
+				for (HxBarCodeRules rule : nRules) {
+					if (rule.getBarCodeNumber() == innerCode.length()) {
+						innerFlag ++;
+						if(validateRule(rule.getInsideMachine(), rule.getInsideMachineContent(), innerCode)){
+							innerFlag ++;
+							if(validateRule(rule.getInsideMachineOne(), rule.getInsideMachineContentOne(), innerCode)){
+								innerFlag ++;
+								if(validateRule(rule.getInsideMachineTwo(), rule.getOutsideMachineContentTwo(), innerCode)){
+									innerFlag ++;
+								}else{
+									innerFlag = 0;
+									continue;
+								}
+							}else{
+								innerFlag = 0;
+								continue;
+							}
+						}else{
+							innerFlag = 0;
+							continue;
+						}
+					} else {
+						continue;
+					}
+				}
+				
+				if(outerFlag == 4 && innerFlag == 4){
+					HxCodeBar hxCodeBar = crmWebsiteDao.getHxCodeBarByProductCode("Z" + productCode);
+					int flag = 0;
+					if(hxCodeBar == null){
+						flag = 2;
+					}else{
+						if(validateModel(hxCodeBar.getCodeBegin(), hxCodeBar.getInnerCode1(), innerCode)){
+							flag ++;
+							if(validateModel(hxCodeBar.getCodeBegin(), hxCodeBar.getOuterCode(), outerCode)){
+								flag ++;
+							}else{
+								logger.info("内机机型机型验证不通过");
+								return false;
+							}
+						}else{
+							logger.info("外机机型验证不通过");
+							return false;
+						}
+					}
+					if(flag == 2){
+						int count1 = crmWebsiteDao.getHxServiceProductCountByInnerCode1(innerCode);
+						if(count1 > 0){
+							logger.info("内机机型1已经存在");
+							return false;
+						}else{
+							int count2 = crmWebsiteDao.getHxServiceProductCountByInnerCode2(innerCode);
+							if(count2 > 0){
+								logger.info("内机机型2已经存在");
+								return false;
+							}else{
+								int count3 = crmWebsiteDao.getHxServiceProductCountByOuterCode(outerCode);
+								if(count3 > 0){
+									logger.info("外机机型已经存在");
+									return false;
+								}else{
+									return true;
+								}
+							}
+						}
+					}
+				}else{
+					logger.info("验证不通过");
+					return false;
+				}
+				
+			}
+		} else {
+			if (isNull(productCode) || isNull(innerCode)) {
+				logger.info("为空");
+				return false;
+			} else {
+				int flag = 0;
+				
+				List<HxBarCodeRules> rules = crmWebsiteDao.getHxBarCodeRulesByProductCode(productCode);
+				
+				for (HxBarCodeRules rule : rules) {
+					if (rule.getBarCodeNumber() == innerCode.length()) {
+						flag ++;
+						if(validateRule(rule.getInsideMachine(), rule.getInsideMachineContent(), innerCode)){
+							flag ++;
+							if(validateRule(rule.getInsideMachineOne(), rule.getInsideMachineContentOne(), innerCode)){
+								flag ++;
+								if(validateRule(rule.getInsideMachineTwo(), rule.getOutsideMachineContentTwo(), innerCode)){
+									flag ++;
+								}else{
+									flag = 0;
+									continue;
+								}
+							}else{
+								flag = 0;
+								continue;
+							}
+						}else{
+							flag = 0;
+							continue;
+						}
+					} else {
+						continue;
+					}
+				}
+				
+				if(flag == 4){
+					HxCodeBar hxCodeBar = crmWebsiteDao.getHxCodeBarByProductCode(productCode);
+					int modelFlag = 0;
+					if(hxCodeBar == null){
+						modelFlag = 2;
+					}else{
+						if(validateModel(hxCodeBar.getCodeBegin(), hxCodeBar.getInnerCode1(), innerCode)){
+							modelFlag ++;
+							if(validateModel(hxCodeBar.getCodeBegin(), hxCodeBar.getOuterCode(), outerCode)){
+								modelFlag ++;
+							}else{
+								logger.info("内机机型机型验证不通过");
+								return false;
+							}
+						}else{
+							logger.info("外机机型验证不通过");
+							return false;
+						}
+					}
+					if(modelFlag == 2){
+						int count = crmWebsiteDao.getHxServiceProductCountByMachineCode(innerCode);
+						if(count > 0){
+							logger.info("机型已经存在");
+							return false;
+						}else{
+							return true;
+						}
+					}
+				}else{
+					logger.info("验证不通过");
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean isNull(String str) {
+		if (str == null || str.equals("")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private boolean isDate(String str) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		try {
+			sdf.parse(str);
+			return true;
+		} catch (ParseException e) {
+			return false;
+		}
+	}
+	
+	//判断规则(参数为位数 内容 判断的字符)
+	private boolean validateRule(Integer count, String content, String str){
+		content = content.trim();
+		if (count == null || count <= 0 || content == null || "".equals(content)){
+			return true;
+		}else{
+			if ("#YYYYMM".equals(content)) {
+				return isDate(str.substring(count - 1, count + 3));
+			}else if(content.startsWith("#N-")){
+				String[] tempStr = content.split("-");
+				int start = Integer.parseInt(tempStr[1]);
+				String regEx = "^\\d{" + tempStr[1] + "}$"; 
+				Pattern pat = Pattern.compile(regEx);  
+				Matcher matcher = pat.matcher(str.substring(count - 1, count - 1 + start));  
+				return matcher.find();  
+			}else{
+				String[] cons = content.split(";");
+				int flag = 0;
+				for(String s : cons){
+					if(s.equals(str.substring(count - 1, count))){
+						flag = 1;
+						break;
+					}
+				}
+				return flag == 1 ? true : false;
+			}
+		}
+	}
+	
+	//判断机型(参数为位数 内容 判断的字符)
+	private boolean validateModel(String start, String content, String str){
+		try{
+			Integer startCount = Integer.valueOf(start);
+			if(start == null || startCount <= 0 || content == null || "".equals(content)){
+				return true;
+			}else{
+				return str.substring(startCount - 1).startsWith(content);
+			}
+		}catch(Exception e){
+			String regEx = "^[1-9]{1}[0-9]*-[1-9]{1}[0-9]*/[1-9]{1}[0-9]*-[1-9]{1}[0-9]*$"; 
+			Pattern pat = Pattern.compile(regEx);  
+			Matcher mat = pat.matcher(start);  
+			if(mat.find()){
+				String[] s = start.split("/");
+				Integer length1 = Integer.valueOf(s[0].split("-")[0]);
+				Integer length2 = Integer.valueOf(s[1].split("-")[0]);
+				Integer s1 = Integer.valueOf(s[0].split("-")[1]);
+				Integer s2 = Integer.valueOf(s[1].split("-")[1]);
+				if(str.length() == length1){
+					return str.substring(s1 - 1).startsWith(content);
+				}
+				if(str.length() == length2){
+					return str.substring(s2 - 1).startsWith(content);
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}
+	}
+
+	@Override
+	public void delCustomerserviceSaleMapping() {
+		crmWebsiteDao.delCustomerserviceSaleMapping();
+	}
+
+	@Override
+	public void insertCustomerserviceSaleMapping(List<CustomerserviceSaleMapping> list) {
+		crmWebsiteDao.insertCustomerserviceSaleMapping(list);
+	}
+
+	@Override
+	public String insertResetPassword(String xmlData) {
+		Document document = null;
+		String fappaccount = "";
+		String frandpwd = "";
+		try {
+			document = DocumentHelper.parseText(xmlData);
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+		Element root = document.getRootElement();
+		Iterator iter = root.elementIterator("XML_DATA"); // 获取根节点下的子节点XML_DATA
+		// 遍历head节点
+		while (iter.hasNext()) {
+			Element recordEle = (Element) iter.next();
+			fappaccount = recordEle.elementTextTrim("fappaccount"); // 拿到XML_DATA节点下的子节点fappaccount值
+			frandpwd = recordEle.elementTextTrim("frandpwd"); // 拿到XML_DATA节点下的子节点frandpwd值
+		}
+
+		HxResetPassword hxResetPassword = new HxResetPassword();
+		String id = UUIDGenerator.getUUID();
+		hxResetPassword.setId(id);
+		hxResetPassword.setFappaccount(fappaccount);
+		hxResetPassword.setFrandpwd(frandpwd);
+		hxResetPassword.setFpassword(MD5EncryptUtils.MD5Encode(frandpwd));
+		hxResetPassword.setFresetdate(new Date());
+		
+		StringBuffer sb = new StringBuffer();
+		sb.append("<PASSWORD>");
+		sb.append("<HEADER>");
+		sb.append("<INTERFACE_ID>"+SysConstant.INTERFACE_ID+"</INTERFACE_ID>");
+		sb.append("<MESSAGE_ID>"+SysUtils.getRandomCode()+"</MESSAGE_ID>");
+		sb.append("<SENDER>"+SysConstant.SENDER+"</SENDER>");
+		sb.append("<RECEIVER>"+SysConstant.RECEIVER+"</RECEIVER>");
+		sb.append("</HEADER>");
+		sb.append("<XML_DATA>");
+		try{
+			crmWebsiteDao.insertResetPassword(hxResetPassword);
+			
+			sb.append("<RESULT>"+SysConstant.SUCCESS+"</RESULT>");
+			sb.append("<MESSAGE>"+SysConstant.SUCCESSMESSAGE+"</MESSAGE>");
+		}catch(Exception e){
+			sb.append("<RESULT>"+SysConstant.FAIL+"</RESULT>");
+			sb.append("<MESSAGE>"+e.getMessage()+"</MESSAGE>");
+		}
+		
+		sb.append("</XML_DATA>");
+		sb.append("</PASSWORD>");
+		String backXmlDatat = "";
+		if(sb!=null){
+			backXmlDatat = sb.toString();
+		}
+		return backXmlDatat;
+	}
+
+}

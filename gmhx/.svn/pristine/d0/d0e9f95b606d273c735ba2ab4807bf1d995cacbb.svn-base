@@ -1,0 +1,51 @@
+package com.gome.common;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class Constrants {
+	//码表map
+	public static final Map<String, Map<String, String>> CODEMAP = new HashMap<String, Map<String, String>>();
+	//物料标题map
+	public static final Map<String, String> FITTING_TITLE_MAP = new HashMap<String, String>();
+	static{
+		FITTING_TITLE_MAP.put("fb-blp-fh","分部配件来料不良");
+		FITTING_TITLE_MAP.put("fb-ll-bs","分部配件来料报失");
+		FITTING_TITLE_MAP.put("fb-n-cg","分部配件新料采购");
+		FITTING_TITLE_MAP.put("fb-n-ck-xs","分部配件新料销售出库");
+		FITTING_TITLE_MAP.put("fb-n-sq","分部配件新料申请");
+		FITTING_TITLE_MAP.put("fb-n-th","分部配件新料退回");
+		FITTING_TITLE_MAP.put("fb-o-bf","分部配件旧料报废");
+		FITTING_TITLE_MAP.put("fb-o-ck-xs","分部配件旧料销售出库");
+		FITTING_TITLE_MAP.put("fb-o-fh","分部配件旧料返回");
+		FITTING_TITLE_MAP.put("wd-blp-fh","网点配件来料不良");
+		FITTING_TITLE_MAP.put("wd-ll-bs","网点配件来料报失");
+		FITTING_TITLE_MAP.put("wd-n-cg","网点配件新料采购");
+		FITTING_TITLE_MAP.put("wd-n-ck-xs","网点配件新料销售出库");
+		FITTING_TITLE_MAP.put("wd-n-sq","网点配件新料申请");
+		FITTING_TITLE_MAP.put("wd-n-th","网点配件新料退回");
+		FITTING_TITLE_MAP.put("wd-o-ck-xs","网点配件旧料销售出库");
+		FITTING_TITLE_MAP.put("wd-o-fh","网点配件旧料返回");
+		FITTING_TITLE_MAP.put("wd-yjjh-sq","网点配件应急计划申请");
+		FITTING_TITLE_MAP.put("zb-n-ck-pk","总部配件新料盘亏出库");
+		FITTING_TITLE_MAP.put("zb-n-ck-qt","总部配件新料其他出库");
+		FITTING_TITLE_MAP.put("zb-n-ck-thscck","总部配件新料退回生产仓库");
+		FITTING_TITLE_MAP.put("zb-n-ck-xs","总部配件新料销售出库");
+		FITTING_TITLE_MAP.put("zb-n-db","分部配件新料调拨");
+		FITTING_TITLE_MAP.put("zb-n-rk-cg","总部配件新料采购入库");
+		FITTING_TITLE_MAP.put("zb-n-rk-csh","总部配件新料初始化入库");
+		FITTING_TITLE_MAP.put("zb-n-rk-ll","总部配件新料领料入库");
+		FITTING_TITLE_MAP.put("zb-n-rk-py","总部配件新料盘盈入库");
+		FITTING_TITLE_MAP.put("zb-n-rk-qt","总部配件新料其他入库");
+		FITTING_TITLE_MAP.put("zb-n-rk-xf","总部配件新料修复入库");
+		FITTING_TITLE_MAP.put("zb-o-rk-csh","总部配件旧料初始化入库");
+		FITTING_TITLE_MAP.put("zb-o-rk-py","总部配件旧料盘盈入库");
+		FITTING_TITLE_MAP.put("zb-o-rk-qt","总部配件旧料其他入库");
+	}
+	//用户session
+	public static final String USER_INFO = "user";
+	//用户登录方式
+	public static final String GOME_USER = "01";
+	public static final String THIRD_NETWORK_USER = "02";
+	public static final String SYS_DEFINE_USER = "03";
+}

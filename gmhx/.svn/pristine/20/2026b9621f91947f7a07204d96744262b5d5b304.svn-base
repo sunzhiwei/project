@@ -1,0 +1,89 @@
+package com.gome.gmhx.entity.vo;
+
+import java.util.Date;
+/*
+ * 恒信工作流之工单单据
+ */
+
+public class HxJBPMOrderVO {
+
+	private String orderCode; // 单据编号
+	
+	private String processModel; // 流程模型
+	
+	private String applicant; // 单据申请人
+	
+	private Date applicantTime;// 单据申请日期
+	
+	private String operator; // 当前单据操作人
+	
+	private Date operatorTime; // 当前单据操作日期
+	
+	private String operatorResult; // 当前单据操作结果
+	
+	private String status; // 当前单据状态
+
+	public String getOrderCode() {
+		return orderCode;
+	}
+
+	public void setOrderCode(String orderCode) {
+		this.orderCode = orderCode;
+	}
+
+	public String getProcessModel() {
+		return processModel;
+	}
+
+	public void setProcessModel(String processModel) {
+		this.processModel = processModel;
+	}
+
+	public String getApplicant() {
+		return applicant;
+	}
+
+	public void setApplicant(String applicant) {
+		this.applicant = applicant;
+	}
+
+	public Date getApplicantTime() {
+		return applicantTime;
+	}
+
+	public void setApplicantTime(Date applicantTime) {
+		this.applicantTime = applicantTime;
+	}
+
+	public String getOperator() {
+		return operator;
+	}
+
+	public void setOperator(String operator) {
+		this.operator = operator;
+	}
+
+	public Date getOperatorTime() {
+		return operatorTime;
+	}
+
+	public void setOperatorTime(Date operatorTime) {
+		this.operatorTime = operatorTime;
+	}
+
+	public String getOperatorResult() {
+		return operatorResult;
+	}
+
+	public void setOperatorResult(String operatorResult) {
+		this.operatorResult = operatorResult;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+}

@@ -1,0 +1,294 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="../inc/header.jsp"%>
+<%@ include file="../inc/resource.inc"%>
+<script type="text/javascript">
+	$(function() {
+		
+		var status='${m.status}';
+		if(status=="S3" || status=="S4"){
+			$("#checkform").css("display", "block"); 
+		}else{
+			$("#notcheckform").css("display", "block"); 
+		}
+		$('#dataGrid').datagrid({
+			title : "配件明细",
+			url : "${ctx}/hxMaterial/getHxMaterialDetail/${m.listNumber}",
+			//height : document.documentElement.clientHeight * 0.3,
+			striped : true,
+			collapsible : true,
+			autoRowHeight : false,
+			singleSelect : true,
+			remoteSort : false,
+			rownumbers : true,
+			fitColumns : true,
+			showFooter: true,
+			columns : [ [ {
+				field : 'fitting_code',
+				title : '配件编码',
+				align:'center',
+				width : 300
+			}, {
+				field : 'fitting_name',
+				title : '配件名称',
+				align : 'center',
+				width : 300
+			}, 
+			{
+				field : 'spec',
+				title : '规格',
+				align : 'center',
+				styler: cellStyler,
+				width : 300
+			}, {
+				field : 'price',
+				title : '单价',
+				align : 'center',
+				styler: cellStyler,
+				width : 300
+			}, {
+				field : 'apply_count',
+				title : '申请',
+				align:'center',
+				width : 300
+			},{
+				field : 'audit_count',
+				title : '审批',
+				align:'center',
+				width : 300
+			}, {
+				field : 'receive_count',
+				title : '接收',
+				align:'center',
+				width : 300
+			},  {
+				field : 'comment',
+				title : '备注',
+				align:'center',
+				width : 300
+			} ] ]
+		});
+		
+		
+		$("div.datagrid-wrap").css("height","auto");
+		
+		function cellStyler(value,row,index){
+			if(row.spec=="总计（元）："){
+				return 'background-color:#ffee00;color:red;';
+			}
+		}
+		
+		
+		$('#traildataGrid').datagrid({
+			title : "任务轨迹列表",
+			url : "${ctx}/hxWorkFlow/getTaskTrajeCttoryPageList/${m.listNumber}",
+			height : document.documentElement.clientHeight * 0.3,
+			striped : true,
+			collapsible : true,
+			autoRowHeight : false,
+			singleSelect : true,
+			remoteSort : false,
+			rownumbers : true,
+			fitColumns : true,
+			showFooter: true,
+			columns : [ [ {
+				field : 'applicant',
+				title : '申请人',
+				align:'center',
+				width : 300,
+				formatter:function(value, row, index){ 
+                 	return changeToName(row.applicant,1);
+	            }
+			}, {
+				field : 'applyTime',
+				title : '申请时间',
+				align : 'center',
+				width : 300
+			}, {
+				field : 'currentActivity',
+				title : '当前状态',
+				align : 'center',
+				width : 300,
+				formatter:function(value, row, index){ 
+                 	return statusVal(row.currentActivity);
+	            }
+			}, {
+				field : 'participant',
+				title : '参与者',
+				align : 'center',
+				width : 300,
+				formatter:function(value, row, index){ 
+                 	return changeToName(row.participant,1);
+	            }
+			}, {
+				field : 'approveComment',
+				title : '审批说明',
+				align:'center',
+				width : 300
+			}, {
+				field : 'createDate',
+				title : '创建时间',
+				align:'center',
+				width : 300
+			}, {
+				field : 'nextActivityName',
+				title : '下一级任务',
+				align:'center',
+				width : 300,
+				formatter:function(value, row, index){ 
+                 	return statusVal(row.nextActivityName);
+	            }
+			}, {
+				field : 'nextParticipants',
+				title : '下一级任务参与者',
+				align:'center',
+				width : 300,
+				formatter:function(value, row, index){ 
+                 	return changeToName(row.nextParticipants,2);
+	            }
+			} ] ]
+		});
+		
+	});
+	
+	function statusVal(status){
+		if(status=='S0'){
+			return '流程结束';
+		}else if(status=='S1'){
+			return '暂存';
+		}else if(status=='S2'){
+			return '提交';
+		}else if(status=='S3'){
+			return '分部审核';
+		}else if(status=='S4'){
+			return '总部审核';
+		}else if(status=='S5'){
+			return '填写出库数量';
+		}else if(status=='S6'){
+			return '出库';
+		}else if(status=='S7'){
+			return '邮包发货';
+		}else if(status=='S8'){
+			return '邮包收货';
+		}else if(status=='S9'){
+			return '网店确认';
+		}
+	}
+	
+	
+	
+	function changeToName(applicant,type) {
+		var result="";
+		$.ajax({
+             url: ctx + "/hxWorkFlow/changeToName",
+             data: {value:applicant, type:type},
+             async:false,
+             success: function(data){
+            	 result=data;
+              }
+         });
+		 return result;
+	}
+	
+	function editApplyCount(listNumber) {
+		alert("listNumber:"+listNumber);
+		var options = {};
+		options.url = "${ctx}/hxMaterial/getHxMaterialDetail/" + ordercode;
+		$('#accessories').datagrid(options);
+		$("#listNumber").val(ordercode);
+		$('#Win').dialog('open').dialog('setTitle', '填写出库数量');
+		
+	}
+	
+	
+	function submitForm() {
+		var type=$("input[name='approveComment']:checked").val();
+		var comment=$("#comment").val();
+		$.post(ctx + "/hxWorkFlow/updateHxMaterialManage", {
+			listNumber : '${m.listNumber}',
+			type:type,
+			approveComment:comment
+		}, function(data) {
+			 $.messager.alert("操作提示", data, "info", function () {
+				 window.location.href="${ctx}/hxWorkFlow/list";
+		        });
+		});
+	}
+	
+	function reduceStock() {
+		$.post(ctx + "/hxMaterial/reduceStock", {
+			listNumber : $("#listNumber").val(),
+		}, function(data) {
+			data = $.parseJSON(data);
+			if (data.flag ==  "success") {
+				$.messager.alert('确认出库成功', '成功', 'info');
+				 window.location.href="${ctx}/hxWorkFlow/list";
+			} else {
+				$.messager.alert('确认出库失败', '失败', 'info');
+			}
+		});
+	}
+	
+	function goBack() {
+		window.location.href="${ctx}/hxWorkFlow/list";
+	}
+	
+</script>
+
+<div>
+<jsp:include page="material/materialView.jsp" />
+</div>
+
+<div class="easyui-layout">
+	<table id="dataGrid"></table>
+</div>
+<div class="easyui-layout">
+   <table id="traildataGrid"></table>
+</div>
+<div id="checkform" style="display: none">
+ <form id="form" method="post">
+ <input id="listNumber" type="hidden" value="${m.listNumber}">
+	<div style="background-color:#95b8e7; text-align:left; color:#fff; font-weight:bold; border-bottom: 1px solid #000;">
+		审批提交
+	</div>
+	<table border=1 style="cellSpacing:1;cellPadding:3;width:100%;background-color:#eff5ff;border-collapse:collapse">
+		<tr>
+			<td width="25%" align="center">审批：</td>
+			<td width="25%">
+             <input type="radio" checked="checked"  name="approveComment" value="1">同意&nbsp;&nbsp;
+             <input type="radio"  name="approveComment" value="2">不同意
+            </td>
+		</tr>
+		<tr>
+			<td width="25%" align="center">审批意见：</td>
+			<td width="25%" colspan="3"><textarea name="comment" id="comment" rows="3" cols="52"></textarea></td>
+		</tr>
+	</table>
+</form>
+<div style="text-align:center;padding:5px">
+	    	<a href="#" class="easyui-linkbutton"  data-options="toggle:true,group:'g1',iconCls:'icon-save'" onclick="submitForm();">保存</a>
+	    	<a href="#" class="easyui-linkbutton"  data-options="toggle:true,group:'g1',iconCls:'icon-back'" onclick="goBack();">返回</a>
+	</div>
+	
+</div>
+
+<div style="text-align:center;padding:5px;display: none" id="notcheckform" >
+	    <a href="#" class="easyui-linkbutton"  data-options="toggle:true,group:'g1',iconCls:'icon-save'"  onclick="reduceStock();">确认</a>
+	    <a href="#" class="easyui-linkbutton"  data-options="toggle:true,group:'g1',iconCls:'icon-back'" onclick="goBack();">返回</a>
+	</div>
+
+<div id="Win" class="easyui-dialog" buttons="#dlg-buttons"
+		data-options="modal:true,closed:true,iconCls:'icon-edit',top:100,resizable:true"
+		style="width: 650px; height: 400px; padding: 10px; font-size: 16px;">
+
+		<div id="cc" class="easyui-layout"
+			style="width: 550px; height: 300px;">
+			<form action=""></form>
+			<input type="hidden" id="listNumber">
+			
+		</div>
+	</div>
+	<div id="dlg-buttons">
+		<a href="#" class="easyui-linkbutton" iconCls="icon-ok"
+			onclick="updateHxMaterialDetail()">确认</a> <a href="#" class="easyui-linkbutton"
+			iconCls="icon-cancel" onclick="javascript:$('#Win').dialog('close')">取消</a>
+	</div>

@@ -1,0 +1,30 @@
+package com.gome.gmhx.dao.wsdl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
+import com.gome.gmhx.entity.CrmWebsite;
+import com.gome.gmhx.entity.HxBarCodeRules;
+import com.gome.gmhx.entity.HxCodeBar;
+
+@Repository("crmWebsiteDao")
+public interface CrmWebsiteDao {
+	
+	public void delCrmwebsite();
+	
+	public void insertCrmwebsite(List<CrmWebsite> list);
+
+	public List<HxBarCodeRules> getHxBarCodeRulesByProductCode(String productCode);
+
+	public HxCodeBar getHxCodeBarByProductCode(String productCode);
+
+	public int getHxServiceProductCountByInnerCode1(String innerCode);
+
+	public int getHxServiceProductCountByInnerCode2(String innerCode);
+
+	public int getHxServiceProductCountByOuterCode(String outerCode);
+
+	public int getHxServiceProductCountByMachineCode(String innerCode);
+	
+}

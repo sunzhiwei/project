@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gome.jbpm.material" >
+		<!-- 入参为物料申请单的单号id，和要查询的岗位代码positions<List> -->
+		<!--根据物料申请单中的收货单位获得参与者  -->
+		<select id="queryParticipantsByReceiveCompany"  resultType="com.gome.gmhx.jbpm.JbpmParticipant"  parameterType="map">
+	        select t.userAccount,t.positionId ,'material' as positionType from 
+	        (select distinct(hup.user_login_name) as userAccount,hup.position_id as positionId from hx_user_position hup
+			union select heu.user_login_name as userAccount,heu.position_id as positionId from  hx_emp_unload heu) 
+			t  where 1=1
+			<if test="positions != null">
+  	 	 		and t.positionId in
+  	 	 		<foreach item="item" index="index" collection="positions" open="(" separator="," close=")">
+                    #{item}
+        	 	</foreach>
+ 			</if> 			
+		</select>
+		
+		<select id="queryHeadDeptParticipants"  resultType="com.gome.gmhx.jbpm.JbpmParticipant"  parameterType="map">
+			select hup.user_login_name as userAccount,hup.position_id as positionId,'material' as positionType from hx_user_position hup
+			left join hx_position hp on hup.position_id = hp.position_id	
+			where hp.org_id='WLZB'	
+			<if test="positions != null">
+  	 	 		and hp.position_code in
+  	 	 		<foreach item="item" index="index" collection="positions" open="(" separator="," close=")">
+                    #{item}
+        	 	</foreach>
+ 			</if> 		
+		</select>
+</mapper>

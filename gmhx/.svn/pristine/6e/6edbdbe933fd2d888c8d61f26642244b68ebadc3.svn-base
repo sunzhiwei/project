@@ -1,0 +1,144 @@
+package com.gome.gmhx.service.common.impl;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.stereotype.Service;
+
+import com.gome.common.util.BeanTool;
+import com.gome.common.util.UUIDGenerator;
+import com.gome.gmhx.entity.HxBarCodeRules;
+import com.gome.gmhx.entity.HxCodeBar;
+import com.gome.gmhx.entity.HxFitting;
+import com.gome.gmhx.entity.HxFittingModel;
+import com.gome.gmhx.entity.HxFree;
+import com.gome.gmhx.entity.HxMaintenance;
+import com.gome.gmhx.entity.HxProductDetail;
+import com.gome.gmhx.service.common.ExcelImportService;
+@Service("excelImportService")
+public class ExcelImportServiceImpl implements ExcelImportService {
+	@Resource
+	SqlSessionTemplate sqlSessionTemplate;
+	private String[] productDetailPropery = {"classifyCode","productCode","productName","englishName","model","modelClassify","productModel","gomeCode","isNew","isPreferential","installationFee","spec","price","refrigeration","comment"};
+	private String[] barCodeRules = {"gomeCode","category","barCodeNumber","insideMachine","insideMachineContent","insideMachineOne","insideMachineContentOne","insideMachineTwo","insideMachineContentTwo","outsideMachine","outsideMachineContent","outsideMachineOne","outsideMachineContentOne","outsideMachineTwo","outsideMachineContentTwo","note"};
+	private String[] fittingPropery = { "fittingCode", "fittingName",
+			"fittingType", "partsCode", "spec", "produceType", "gomeCode",
+			"fittingLevel", "cost", "networkPrice", "branchPrice", "userPrice",
+			"comment", "term", "isRetrieve", "isStop", "updateTime" };
+	private String[] fittingModelPropery={"fittingCode","suitModel","comment"};
+	private String[] maintenancePropery = { "category", "classifyName",
+			"classifyCode", "maintenanceCosts", "arrangeNumber", "chose",
+			"validity", "parentCode", "modifier", "modDate", "parentClassify",
+			"wetEnable", "faultName", "PNumber", "wetUnion", "faultCode", "note"};
+	private String[] codeBarPropery={"compareType","innerCode1","innerCode2","outerCode","innerModel1","innerModel2","outerModel","wholeModel","codeBegin","comment","updateTime"};
+	private String[] freePropery={"model","expenseStandard","managerFee","monthlyBonus","brand","founder","createDate","modified","modifiedDate"};
+	
+	@Override
+	public void importHxProductDetail(Workbook workbook) {
+		Sheet st= workbook.getSheetAt(0);
+		List<Object> hxProductDetails= this.xSSFSheetToObjectList(st, new HxProductDetail(), productDetailPropery);
+		this.sqlSessionTemplate.insert("com.gome.gmhx.dao.basicdata.HxProductDetailDao.insertBatch", hxProductDetails);
+	}
+	
+	@Override
+	public void importBarCodeRules(Workbook workbook) {
+		Sheet st= workbook.getSheetAt(0);
+		List<Object> hxBarCodeRules= this.xSSFSheetToObjectList(st, new HxBarCodeRules(), barCodeRules);
+		this.sqlSessionTemplate.insert("com.gome.gmhx.dao.basicdata.HxBarCodeRulesDao.insertBatch", hxBarCodeRules);
+	}
+	
+	@Override
+	public void importHxFitting(Workbook workbook) {
+		Sheet st= workbook.getSheetAt(0);
+		List<Object> hxFittings = this.xSSFSheetToObjectList(st, new HxFitting(), fittingPropery);
+		this.sqlSessionTemplate.insert("com.gome.gmhx.dao.basicdata.HxFittingDao.insertFittingDetailBatch", hxFittings);
+	}
+	
+	@Override
+	public void importHxFittingModel(Workbook workbook) {
+		Sheet st= workbook.getSheetAt(0);
+		List<Object> hxFittingModels = this.xSSFSheetToObjectList(st, new HxFittingModel(), fittingModelPropery);
+		this.sqlSessionTemplate.insert("com.gome.gmhx.dao.basicdata.HxFittingDao.insertFittingModelBatch", hxFittingModels);
+	}
+
+	@Override
+	public void importHxMaintenance(Workbook workbook) {
+		Sheet st= workbook.getSheetAt(0);
+		List<Object> hxMaintenances = this.xSSFSheetToObjectList(st, new HxMaintenance(), maintenancePropery);
+		this.sqlSessionTemplate.insert("com.gome.gmhx.dao.basicdata.HxMaintenanceDao.insertMaintenanceBatch", hxMaintenances);
+	}
+
+	@Override
+	public void importHxCodeBar(Workbook workbook) {
+		Sheet st= workbook.getSheetAt(0);
+		List<Object> HxCodeBars = this.xSSFSheetToObjectList(st, new HxCodeBar(), codeBarPropery);
+		for(Object o:HxCodeBars){
+			HxCodeBar codeBar=(HxCodeBar) o;
+			codeBar.setId(UUIDGenerator.getUUID());
+		}
+		this.sqlSessionTemplate.insert("com.gome.gmhx.dao.basicdata.HxCodeBarDao.insertCodeBarBatch", HxCodeBars);
+	}
+
+	@Override
+	public void importHxFree(Workbook workbook) {
+		Sheet st= workbook.getSheetAt(0);
+		List<Object> HxFrees = this.xSSFSheetToObjectList(st, new HxFree(), freePropery);
+		for(Object o:HxFrees){
+			HxFree free=(HxFree) o;
+			free.setFreeId(UUIDGenerator.getUUID());
+		}
+		this.sqlSessionTemplate.insert("com.gome.gmhx.dao.basicdata.HxFreeDao.insertFreeBatch", HxFrees);
+	}
+
+	private List<Object> xSSFSheetToObjectList(Sheet sheet,Object src,String[] properies){
+		List<Object> objList = new ArrayList<Object>();
+		try{
+			for(int i=1;i<=sheet.getLastRowNum();i++){
+				Row row = sheet.getRow(i);
+				Object cloneObj = src.getClass().newInstance();
+				objList.add(cloneObj);
+				for(int index=0;index<row.getLastCellNum();index++){
+					Cell cell = row.getCell(index);
+					String value = null;
+					if(cell!=null){
+						 switch (cell.getCellType()) {
+			               case XSSFCell.CELL_TYPE_STRING:
+			                   value = cell.getStringCellValue();
+			                   break;
+			               case XSSFCell.CELL_TYPE_NUMERIC:
+			                      value = new DecimalFormat("0").format(cell.getNumericCellValue());
+			                   break;
+			               case XSSFCell.CELL_TYPE_FORMULA:
+			                      value = cell.getNumericCellValue() + "";
+			                   break;
+			               case XSSFCell.CELL_TYPE_BLANK:
+			                   break;
+			               case XSSFCell.CELL_TYPE_ERROR:
+			                   value = "";
+			                   break;
+			               case XSSFCell.CELL_TYPE_BOOLEAN:
+			                   value = cell.getBooleanCellValue()+"";
+			                   break;
+			               default:
+			                   value = null;
+			               }
+					}
+					BeanTool.setAttributeByString(cloneObj,properies[index], value);
+				}
+			}
+		}catch(Exception e){
+			throw new RuntimeException(e);
+		}
+		return objList;
+	}
+
+}

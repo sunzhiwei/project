@@ -1,0 +1,23 @@
+package com.gome.gmhx.jbpm;
+
+/**
+* @ClassName: JBPMActivities
+* @Description:JBPM业务实体的状态（流程的每一个任务节点对应一个状态。任务节点名即状态名）
+* @author liuchao
+* @date 2014年8月27日 下午4:57:37
+*/
+public interface JbpmWorkEntityStatus {
+	
+	/**
+	 * 状态的命名以流程类型区分位（服务以S开头，服务以F开头）+流程区分位（一位大写英文字母)+状态区分位(两位数字)+是否可以撤回标识（是：_1,否：_0）
+	 * 例如：总部物料的新料申请的提交申请： FA01；
+	 * 为了定义的连贯性，不同的流程的同一状态按照该流程的顺序采用不用的标识
+	 * */
+	
+	/*demo*/
+	public static String processDefinitionKey_statusName = "SA01_1";
+	
+	
+	
+
+}

@@ -1,0 +1,17 @@
+package com.gome.gmhx.service.common;
+
+import org.apache.poi.ss.usermodel.Workbook;
+
+public interface ExcelImportService {
+	
+	public void importHxProductDetail(Workbook Workbook);
+
+	public void importBarCodeRules(Workbook workbook);
+	
+	public void importHxFitting(Workbook workbook);
+
+	public void importHxFittingModel(Workbook workbook);
+
+	public void importHxMaintenance(Workbook workbook);
+
+}

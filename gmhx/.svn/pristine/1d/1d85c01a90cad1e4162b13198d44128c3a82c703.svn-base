@@ -1,0 +1,9 @@
+package com.gome.gmhx.service;
+
+public interface MachineReviewService {
+	
+	public String barCodeVerification(String machineModeCode,String barCode);
+	
+	public String machineRecevie(String serviceId);
+
+}

@@ -1,0 +1,192 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="../../inc/header.jsp"%>
+<%@ include file="../../inc/resource.inc"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<script type="text/javascript">
+	var dataGrid;
+	$(function() {
+		dataGrid = $('#dataGrid').datagrid({
+			title : "系统角色",
+			url : "${ctx}/brand/getBrandPageList",
+			nowrap : false,
+			striped : true,
+			height : document.body.clientHeight - 70,
+			collapsible : true,
+			autoRowHeight : false,
+			remoteSort : false,
+			idField : 'id',
+			rownumbers : true,
+			fitColumns : true,
+			pagination : true,
+			checkOnSelect : false,
+			singleSelect : true,
+			selectOnCheck : false,
+			queryParams : {
+				currentPage : 1,
+				pageCount : 10
+			},
+			columns : [ [ {
+				field : 'id',
+				title : 'id',
+				hidden: true
+			},{
+				field : 'gm_code2',
+				title : '国美代码',
+				width : 25,
+				align:'center'
+			}, {
+				field : 'brand2',
+				title : '品牌',
+				width : 25,
+				align:'center'
+			}, {
+				field : 'note',
+				title : '备注',
+				width : 20,
+				align:'center'
+			}, {
+				field : 'mod_date',
+				title : '修改日期',
+				width : 20,
+				align:'center'
+			},{
+				field : 'rep_date',
+				title : '创建日期',
+				width : 20,
+				hidden: true
+			},
+			{
+				field : 'action',
+				title : '操作',
+				width : 20,
+				align:'center',
+				formatter : function(value, row, index) {
+					return '<a href="#" onclick="update(\'' + row.id + '\',\'' + row.gm_code  + '\');">修改</a> <a href="#" onclick="show(\'' + row.id + '\',\'' + row.gm_code  + '\');">查看</a>';
+				}
+			} ] ],
+			toolbar : '#toolbar',
+			onLoadSuccess : function() {
+				$('#searchForm table').show();
+				$(this).datagrid('doCellTip',{'max-width':'300px','delay':500});
+				parent.$.messager.progress('close');
+			}
+		});
+		$('.datagrid-pager').pagination({
+			pageSize: 20,//每页显示的记录条数，默认为10   
+			 onSelectPage : function(pageNumber, pageSize) {
+					$(this).pagination('loading');
+					var queryParams = $.serializeObject($('#searchForm'));
+					queryParams.currentPage = pageNumber;
+					queryParams.pageCount = pageSize;
+					$('#dataGrid').datagrid("options").queryParams = queryParams;
+					$('#dataGrid').datagrid("reload");
+					$(this).pagination('loaded');
+				}
+		});
+		$("#query").on("click", function() {
+			dataGrid.datagrid('load', $.serializeObject($('#searchForm')));
+		});
+	});
+	
+	$.serializeObject = function(form) {
+		var o = {
+			currentPage : 1,
+			pageCount : 10
+		};
+		$.each(form.serializeArray(), function(index) {
+			if (o[this['name']]) {
+				o[this['name']] = o[this['name']] + "," + this['value'];
+			} else {
+				o[this['name']] = this['value'];
+			}
+		});
+		return o;
+	};
+
+	function refreshDataGrid() {
+		$('#dataGrid').datagrid("reload");
+		parent.$.modalDialog.handler.dialog('close');	
+	}	
+	
+	function show(id,gm_code){
+		window.location.href="${ctx}/brand/showView/"+ id;
+	}
+	
+	function add(){
+		window.location.href="${ctx}/brand/addView";  
+	}
+	
+	function update(id){
+		
+		window.location.href="${ctx}/brand/updateView/" + id;  
+	}
+	
+	function importExcel() {
+		parent.$.modalDialog({
+			title : '品牌厂家数据导入',
+			width : 400,
+			height :250,
+			closable : false,
+			href : '${ctx}/common/import/importData?templateName=brandinformation&actionName=importBrand',
+			buttons : [ 
+			{
+				text : '关闭',
+				handler : function() {
+					parent.$.modalDialog.handler.dialog('close');
+				}
+			}]
+		});
+	}
+	
+	function exportExcel(){
+		var opts = dataGrid.datagrid('getColumnFields');
+		var fieldArray = new Array();
+		var titleArray = new Array();
+		for(var i = 0; i < opts.length - 1 ;i++){//最后的操作不要
+			var column = dataGrid.datagrid('getColumnOption', opts[i]);
+			fieldArray.push(column.field);
+			titleArray.push(column.title);
+		}
+		window.location.href = "${ctx}/brand/exportExcel?" + encodeURI($('#searchForm').serialize()) + "&tableField=" + fieldArray.join("|") + "&tableHeader=" + encodeURI(encodeURI(titleArray.join("|")));
+	}
+</script>
+</head>
+<body>
+   <div class="easyui-layout" data-options="fit:true,border:false">
+	 <div data-options="region:'north',title:'查询条件',border:false,collapsible:false" style="height: 120px; overflow: hidden;">
+	   <form id="searchForm">
+	     <table class="table table-hover table-condensed" style="width:100%; padding: 7px 80px 0px 80px">
+	               <tr>
+						<td width="10%">品牌:</td>
+						<td width="5%"><input name="brand" placeholder="输入查询条件" editable="false" class="easyui-combobox" class="span2"  data-options="url:'${ctx}/hxCode/getCombobox/pp'"/></td>
+						<td width="5%"></td>
+						<td width="15%">国美代码:</td>
+						<td width="5%"><input  class="easyui-combobox" name="gm_code" placeholder="输入查询条件" class="span2" data-options="url:'${ctx}/hxCode/getCombobox/gmdm'"/></td> 
+						<td width="5%"></td>
+						<td width="15%">修改日期:</td>
+						<td width="15%">
+							<input id="ksrq" placeholder="选择起始日期" class="Wdate" name="mod_date_st" type="text" onFocus="WdatePicker({maxDate:'#F{$dp.$D(\'jsrq\')}'})"/>至
+							<input id="jsrq" placeholder="选择结束日期" class="Wdate" name="mod_date_end" type="text" onFocus="WdatePicker({minDate:'#F{$dp.$D(\'ksrq\')}'})"/> 
+						</td>
+						<td width="5%"></td>
+						<td width="35%" align="right"><a href="#" id="query" class="easyui-linkbutton" iconCls="icon-search">查询</a></td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div id="toolbar" style="display: none;">
+			<a href="javascript:void(0);" class="easyui-linkbutton"
+				data-options="iconCls:'icon-add',plain:true" onclick="add();">新建</a>
+				<a href="javascript:void(0);" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-add',plain:true" onclick="importExcel();">导入</a>
+			<a href="javascript:void(0);" class="easyui-linkbutton"
+				data-options="iconCls:'icon-excel',plain:true" onclick="exportExcel();">导出</a>
+		</div>
+		<div data-options="region:'center',border:false">
+			<table id="dataGrid"></table>
+		</div>
+	</div>
+</body>
+</html>

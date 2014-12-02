@@ -1,0 +1,62 @@
+package com.gome.gmhx.service.materialmanage.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.dao.materialmanage.HxParcelReceiptDao;
+import com.gome.gmhx.entity.HxParcelReceipt;
+import com.gome.gmhx.service.materialmanage.HxParcelReceiptService;
+
+@Service("hxParcelReceiptService")
+public class HxParcelReceiptServiceImpl implements HxParcelReceiptService {
+	@Resource
+	private HxParcelReceiptDao hxParcelReceiptDao;
+	
+	@Override
+	public List<Map<String, Object>> getHxParcelReceiptPageList(Page page) {
+		return hxParcelReceiptDao.getHxParcelReceiptPageList(page);
+	}
+
+	@Override
+	public void addHxParcelReceipt(HxParcelReceipt hxParcelReceipt) {
+		hxParcelReceiptDao.addHxParcelReceipt(hxParcelReceipt);
+	}
+
+	@Override
+	public HxParcelReceipt getHxParcelReceiptById(String orgId) {
+		return hxParcelReceiptDao.getHxParcelReceiptById(orgId);
+	}
+
+	@Override
+	public void updateHxParcelReceipt(HxParcelReceipt hxParcelReceipt) {
+		hxParcelReceiptDao.updateHxParcelReceipt(hxParcelReceipt);
+	}
+
+	@Override
+	public List<Map<String, Object>> getHxParcelReceiptExport(HxParcelReceipt hxParcelReceipt) {
+		return hxParcelReceiptDao.getHxParcelReceiptExport(hxParcelReceipt);
+	}
+
+	@Override
+	public HxParcelReceipt getShowById(String orgId) {
+		return hxParcelReceiptDao.getShowById(orgId);
+	}
+
+	@Override
+	public void updateHxCurrentStock(HxParcelReceipt hxParcelReceipt) {
+		hxParcelReceiptDao.updateHxCurrentStock(hxParcelReceipt);
+		
+	}
+
+	@Override
+	public List<Map<String, Object>> getHxParcelPageList(Page page) {
+		return hxParcelReceiptDao.getHxParcelPageList(page);
+	}
+
+}

@@ -1,0 +1,27 @@
+package com.gome.gmhx.service.materialmanage;
+
+import java.util.List;
+import java.util.Map;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.entity.HxParcelReceipt;
+
+
+public interface HxParcelReceiptService {
+	List<Map<String, Object>> getHxParcelReceiptPageList(Page page);
+	
+	void addHxParcelReceipt(HxParcelReceipt hxParcelReceipt);
+	
+	HxParcelReceipt getHxParcelReceiptById(String orgId);
+	
+	void updateHxParcelReceipt(HxParcelReceipt hxParcelReceipt);
+	
+	List<Map<String, Object>> getHxParcelReceiptExport(HxParcelReceipt hxParcelReceipt);
+
+	HxParcelReceipt getShowById(String orgId);
+	
+	void updateHxCurrentStock(HxParcelReceipt hxParcelReceipt);
+	
+	List<Map<String, Object>> getHxParcelPageList(Page page);
+	
+}

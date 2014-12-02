@@ -1,0 +1,41 @@
+package com.gome.gmhx.service.materialmanage;
+
+import java.util.List;
+import java.util.Map;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.entity.HxMaterialManage;
+
+public interface HxMaterialService {
+
+	List<String> getFittingBySuit(String suitModel);
+
+	Map<String, Object> getFittingInfo(Map<String, Object> map);
+
+	void addHxMaterial(Map<String, Object> map);
+
+	String getListNumber(String companyId);
+
+	HxMaterialManage getHxMaterialManage(String listNumber);
+
+	String getFatherFittingOrgId(String fittingOrgId);
+
+	List<Map<String, Object>> getHxMaterialPageList(Page page);
+
+	List<Map<String, Object>> getHxMaterialDetail(String listNumber);
+
+	void delHxMaterial(String listNumber);
+
+	void updateStatus(Map<String, String> map);
+
+	void updateCurrentStock(Map<String, Object> map) throws Exception;
+
+	List<Map<String, Object>> getHxMaterialDetailForUpdate(Map<String, Object> map);
+
+	void updateHxMaterial(Map<String, Object> map);
+
+	void hxMaterialSend(String listNumber, String type);
+
+	void updateHxMaterialManage(String listNumber,String transactionpass, String type);
+
+}

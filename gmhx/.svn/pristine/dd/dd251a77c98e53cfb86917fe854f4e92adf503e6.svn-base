@@ -1,0 +1,156 @@
+package com.gome.gmhx.service.materialmanage.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.dao.materialmanage.HxMaterialDao;
+import com.gome.gmhx.dao.materialmanage.HxParcelDeliveryDao;
+import com.gome.gmhx.entity.HxMaterialManage;
+import com.gome.gmhx.entity.HxParcelDelivery;
+import com.gome.gmhx.jbpm.JbpmService;
+import com.gome.gmhx.jbpm.JbpmTransactions;
+import com.gome.gmhx.jbpm.JbpmWorkEntityStatus;
+import com.gome.gmhx.service.materialmanage.HxMaterialService;
+import com.gome.gmhx.service.materialmanage.HxParcelDeliveryService;
+
+@Service("HxParcelDeliveryService")
+public class HxParcelDeliveryServiceImpl implements HxParcelDeliveryService {
+
+	@Resource
+	private HxParcelDeliveryDao ParcelDeliveryDao;
+	@Resource
+	private HxMaterialDao hxMaterialDao;
+	@Resource
+	JbpmService jbpmService;
+
+	@Override
+	public List<Map<String, Object>> getParcelDeliveryPageList(Page page) {
+
+		return ParcelDeliveryDao.getParcelDeliveryPageList(page);
+	}
+
+	@Override
+	public HxParcelDelivery getHxParcelDeliveryById(String parcelCode) {
+		return ParcelDeliveryDao.getHxParcelDeliveryById(parcelCode);
+	}
+
+	@Override
+	public List<Map<String, Object>> getParcelDeliveryExport(
+			HxParcelDelivery parcel) {
+		return ParcelDeliveryDao.getParcelDeliveryExport(parcel);
+	}
+
+	@Override
+	public List<String> getOrgnazationBySuit(String receiveUnit) {
+
+		return ParcelDeliveryDao.getOrgnazationBySuit(receiveUnit);
+	}
+
+	@Override
+	public void updateParcelDelivery(HxParcelDelivery parcel, List<String> listNumbers) {
+		this.ParcelDeliveryDao.deleteMaterialsByCode(parcel.getParcelCode());//批量删
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("parcelCode", parcel.getParcelCode());
+		for (String string : listNumbers) {
+			map.put("listNumber", string);
+			ParcelDeliveryDao.addMaterials(map);//批量加
+		}
+		ParcelDeliveryDao.updateParcelDelivery(parcel);
+	}
+
+	@Override
+	public HxParcelDelivery getsendParcelDeliveryShow(String parcelCode) {
+		return ParcelDeliveryDao.getsendParcelDeliveryShow(parcelCode);
+	}
+
+	@Override
+	public String getParcelCode(String number) {
+		return ParcelDeliveryDao.getParcelCode(number);
+	}
+
+	@Override
+	public void addHxParcelDelivery(Map<String, Object> map, List<String> listNumbers) {
+
+		ParcelDeliveryDao.addHxParcelDelivery(map);
+		for (String string : listNumbers) {
+			map.put("listNumber", string);
+			ParcelDeliveryDao.addMaterials(map);
+		}
+	}
+
+	@Override
+	public HxParcelDelivery getsendById(String parcelCode) {
+		return ParcelDeliveryDao.getsendById(parcelCode);
+	}
+
+	@Override
+	public void updatesendParcelDelivery(Map<String, String> map) {
+		ParcelDeliveryDao.updatesendParcelDelivery(map);
+
+	}
+
+	@Override
+	public List<Map<String, Object>> getApplayCodeList(Page page) {
+
+		return ParcelDeliveryDao.getApplayCodeList(page);
+	}
+
+	@Override
+	public List<Map<String, Object>> getParcelDeliveryDetail(String parcelCode) {
+		return ParcelDeliveryDao.getParcelDeliveryDetail(parcelCode);
+	}
+
+	@Override
+	public String getListNumber(String companyId) {
+		return ParcelDeliveryDao.getListNumber(companyId);
+
+	}
+
+	@Override
+	public void updateHxCurrentStock(Map<String, String> map) {
+		ParcelDeliveryDao.updateHxCurrentStock(map);
+
+	}
+
+	@Override
+	public void delParcelDelivery(String parcelCode) {
+		ParcelDeliveryDao.delParcelDelivery(parcelCode);
+
+	}
+
+	@Override
+	public void sendDelivery(String parcelCode) {
+		List<String> listNumbers = new ArrayList<String>();
+		HxParcelDelivery parcel = this.ParcelDeliveryDao.selectByPrimaryKey(parcelCode);
+		for (Map<String, Object> map : this.ParcelDeliveryDao.selectMaterialsByCode(parcelCode)) {
+			listNumbers.add((String)map.get("list_number"));
+			HxMaterialManage hmm = hxMaterialDao.getHxMaterialManage((String)map.get("list_number"));
+			jbpmService.completeTask(hmm, JbpmTransactions.transactionOperationComplete, "邮包已发货");
+		}
+		for (String string : listNumbers) {
+			//更新申请单状态
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("status", JbpmWorkEntityStatus.status_post_receipt);
+			map.put("listNumber", string);
+			this.hxMaterialDao.updateStatus(map);
+		}
+		parcel.setState("02");
+		parcel.setUpdateDate(new Date());
+		parcel.setOutDate(new Date());
+		ParcelDeliveryDao.updateParcelDelivery(parcel);
+	}
+
+	@Override
+	public HxParcelDelivery selectByPrimaryKey(String parcelCode) {
+		return this.ParcelDeliveryDao.selectByPrimaryKey(parcelCode);
+	}
+
+}

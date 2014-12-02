@@ -1,0 +1,53 @@
+package com.gome.gmhx.controller.storeinfo;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.gome.common.Constrants;
+import com.gome.common.page.Page;
+import com.gome.common.util.BeanMapUtils;
+import com.gome.common.util.JsonUtil;
+import com.gome.gmhx.entity.HxPosition;
+import com.gome.gmhx.entity.SysUser;
+import com.gome.gmhx.entity.vo.HxCurrentStockVO;
+import com.gome.gmhx.service.storeinfo.HxCurrentStockService;
+import com.gome.gmhx.service.sysconfig.HxOrganizationService;
+import com.gome.gmhx.service.sysconfig.HxPositionService;
+
+@Controller
+@RequestMapping(value="/hxCurrentStock")
+public class HxCurrentStockController {
+	@Resource
+	private HxCurrentStockService hxCurrentStockService;
+	@Resource
+	private HxOrganizationService hxOrganizationService;
+	@Resource
+	private HxPositionService hxPositoryService;
+	
+	@RequestMapping("/stockView")
+	public String stockView(HttpServletRequest request){
+		SysUser sysUser = (SysUser)request.getSession().getAttribute(Constrants.USER_INFO);
+		HxPosition position = hxPositoryService.getPositionById(sysUser.getFittingPositionId());
+		request.getSession().setAttribute("ptype",  position.getPositionType());
+		return "storeinfo/stock/stockList";
+	}
+	
+	@RequestMapping(value="/getHxCurrentStockPageList", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getHxCurrentStockPageList(HttpServletRequest request, Page page, HxCurrentStockVO hxCurrentStockVO) throws Exception{
+		Map<String, Object> map = BeanMapUtils.convertBean(hxCurrentStockVO);
+		map.put("specifiedType", request.getParameter("specifiedType"));
+		map.put("isNew", request.getParameter("isNew"));
+		page.setParam(map);
+		List<Map<String, Object>> list = hxCurrentStockService.getHxCurrentStockPageList(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+}

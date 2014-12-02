@@ -1,0 +1,69 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="../../inc/header.jsp"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<script type="text/javascript"></script>
+<body>
+<form id="form" method="post">
+	<div style="background-color:#95b8e7; text-align:left; color:#fff; font-weight:bold; border-bottom: 1px solid #000;">
+		详细查看${title}
+	</div>
+	<table border=1 style="cellSpacing:1;cellPadding:3;width:100%;background-color:#eff5ff;border-collapse:collapse">
+		<tr>
+			<td width="25%" align="center">单据编号</td>
+			<td width="25%">${m.listNumber}</td>
+			<td width="25%" align="center">单据类型</td>
+			<td width="25%">${title}</td>
+		</tr>
+		<tr>
+			<td width="25%" align="center">发货单位</td>
+			<td width="25%"><input id="sendCompany" class="easyui-combobox" name="sendCompany" data-options="url:'${ctx}/hxCode/getOrgCombobox?value=${m.sendCompany}'" disabled="disabled"/></td>
+			<td width="25%" align="center">收货单位</td>
+			<td width="25%"><input id="receiveCompany" class="easyui-combobox" name="receiveCompany" data-options="url:'${ctx}/hxCode/getOrgCombobox?value=${m.receiveCompany}'" disabled="disabled"/></td>
+		</tr>
+		<tr>
+			<td width="25%" align="center">状态</td>
+			<td width="25%"><input class="easyui-combobox" name="sendCompany" data-options="url:'${ctx}/hxCode/getStatusCombobox?status=${m.status}'" disabled="disabled"/></td>
+			<td width="25%" align="center"></td>
+			<td width="25%"></td>
+		</tr>
+		<tr>
+			<td width="25%" align="center">申请人</td>
+			<td width="25%">${m.applicant}</td>
+			<td width="25%" align="center">申请日期</td>
+			<td width="25%"><fmt:formatDate value="${m.applyDate}" pattern="yyyy-MM-dd"/></td>
+		</tr>
+			<c:if test="${type=='wd-yjjh-sq'}">
+		<tr>
+			<td width="25%" align="center">客户姓名</td>
+			<td width="25%">${m.customName}</td>
+			<td width="25%" align="center">客户电话</td>
+			<td width="25%">${m.customTel}</td>
+		</tr>
+		<tr>
+			<td width="25%" align="center">地址</td>
+			<td width="25%" colspan="3">${m.address}</td>
+		</tr>
+			</c:if>
+		<tr>
+			<td width="25%" align="center">备注</td>
+			<td width="25%" colspan="3">${m.comment}</td>
+		</tr>
+		<tr>
+			<td width="25%" align="center">创建人</td>
+			<td width="25%">${m.createPerson}</td>
+			<td width="25%" align="center">创建时间</td>
+			<td width="25%"><fmt:formatDate value="${m.createTime}" pattern="yyyy-MM-dd HH:mm:ss"/> </td>
+		</tr>
+		<tr>
+			<td width="25%" align="center">修改人</td>
+			<td width="25%">${m.updatePerson}</td>
+			<td width="25%" align="center">修改时间</td>
+			<td width="25%"><fmt:formatDate value="${m.updateTime}" pattern="yyyy-MM-dd HH:mm:ss"/></td>
+		</tr>
+	</table>
+</form>
+
+</body>
+</html>

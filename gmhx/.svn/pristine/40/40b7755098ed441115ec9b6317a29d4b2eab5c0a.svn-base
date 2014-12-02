@@ -1,0 +1,47 @@
+package com.gome.gmhx.webservice.wsdl.impl;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.jws.WebService;
+import javax.jws.soap.SOAPBinding;
+import javax.jws.soap.SOAPBinding.Style;
+
+import org.springframework.stereotype.Component;
+
+import com.gome.gmhx.entity.CrmWebsite;
+import com.gome.gmhx.entity.CustomerserviceSaleMapping;
+import com.gome.gmhx.service.wsdl.service.CrmWebsiteService;
+import com.gome.gmhx.webservice.wsdl.CrmWebsiteWService;
+
+@WebService  
+@SOAPBinding(style = Style.DOCUMENT)
+@Component("crmWebsiteWServiceBean")
+public class CrmWebsiteWServiceImpl implements CrmWebsiteWService {
+	@Resource
+	private CrmWebsiteService crmWebsiteService;
+	
+	
+	@Override
+	public void handleCrmwebsite(List<CrmWebsite> list){
+		crmWebsiteService.delCrmwebsite();
+		crmWebsiteService.insertCrmwebsite(list);
+	}
+
+	@Override
+	public boolean validateBarCode(String brand,String category, String productCode, String innerCode, String outerCode) {
+		return crmWebsiteService.validateBarCode(brand, category, productCode, innerCode, outerCode);
+	}
+
+	@Override
+	public void handleCustomerserviceSaleMapping(List<CustomerserviceSaleMapping> list) {
+		crmWebsiteService.delCustomerserviceSaleMapping();
+		crmWebsiteService.insertCustomerserviceSaleMapping(list);
+	}
+
+	@Override
+	public String handleResetPassword(String xmlData) {
+		return crmWebsiteService.insertResetPassword(xmlData);
+	}
+    
+}

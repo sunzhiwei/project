@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gome.jbpm.service">
+	<!-- 入参为物料申请单的单号id，和要查询的岗位代码positions<List> -->
+	<!--根据物料申请单中的收货单位获得参与者 -->
+
+	<!--查询恒信中岗位中的人 -->
+	<select id="queryHXParticipants" resultType="com.gome.gmhx.jbpm.JbpmParticipant"
+		parameterType="map">
+		select t.userAccount,t.positionId ,'service' as positionType from (
+		select hul.user_login_name as userAccount,t.position_id as positionId
+		from hx_user_unload hul inner join (
+		select user_login_name,position_id from hx_emp_unload
+		union
+		select user_login_name,position_id from hx_user_position
+		) t on hul.user_login_name=t.user_login_name
+		where 1=1
+		<if test="positions != null">
+			and t.position_id in
+			<foreach item="item" index="index" collection="positions"
+				open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		and hul.user_org_id = 'ZGS'
+		) t
+	</select>
+
+	<!-- 查询国美总部的人 -->
+	<select id="queryGomeParticipants" resultType="com.gome.gmhx.jbpm.JbpmParticipant"
+		parameterType="map">
+		select t.userAccount,t.positionId ,'service' as positionType from (
+		select hul.user_login_name as userAccount,t.position_id as positionId
+		from hx_user_unload hul inner join (
+		select user_login_name,position_id from hx_emp_unload
+		union
+		select user_login_name,position_id from hx_user_position
+		) t on hul.user_login_name=t.user_login_name
+		where 1=1
+		<if test="positions != null">
+			and t.position_id in
+			<foreach item="item" index="index" collection="positions"
+				open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		and hul.user_org_id = 'GMZB'
+		) t
+	</select>
+
+	<!--申请中的网点的售后公司指定岗位的人员 -->
+	<select id="queryParticipantsByCustomerCompany" resultType="com.gome.gmhx.jbpm.JbpmParticipant"
+		parameterType="map">
+		select t.userAccount,t.positionId ,'service' as positionType from (
+		select hul.user_login_name as userAccount,t2.position_id as positionId
+		from hx_user_unload hul inner join (
+		select user_login_name,position_id from hx_emp_unload
+		union
+		select user_login_name,position_id from hx_user_position
+		) t2 on hul.user_login_name=t2.user_login_name
+		where 1=1
+		<if test="positions != null">
+			and t2.position_id in
+			<foreach item="item" index="index" collection="positions"
+				open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		and hul.user_org_id = (select service_unit
+		from (select service_unit,service_id as id from hx_service_ticket
+		union
+		select service_unit,apply_id as id from hx_service_long_distance
+		union
+		select service_unit,apply_id as id from hx_service_retreat_replacement
+		) t1 where t1.id = #{id} )
+		) t
+	</select>
+
+
+	<select id="queryHeadDeptParticipants" resultType="com.gome.gmhx.jbpm.JbpmParticipant"
+		parameterType="map">
+		select t.userAccount,t.positionId ,'material' as positionType from
+		(select distinct(hup.user_login_name) as userAccount,hup.position_id
+		as positionId from hx_user_position hup
+		union select
+		heu.user_login_name as userAccount,heu.position_id as
+		positionId from
+		hx_emp_unload heu)
+		t left join
+		(select thp.position_code,thp.org_id from
+		hx_position thp
+		union select emp.positioncode as
+		position_code,left(emp.positioncode,
+		(length(emp.positioncode) - 10))
+		AS org_id from emp_empposition emp
+		) hp
+		on t.positionId =
+		hp.position_code where hp.org_id = 'ZGS'
+		<if test="positions != null">
+			and t.positionId in
+			<foreach item="item" index="index" collection="positions"
+				open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	<!--根据售后公司查询对应大库 -->
+	<select id="queryHXStockParticipantsByCustomerCompany"
+		resultType="com.gome.gmhx.jbpm.JbpmParticipant" parameterType="map">
+		select t.userAccount,t.positionId ,'material' as positionType from
+		(select distinct(hup.user_login_name) as userAccount,hup.position_id
+		as positionId from hx_user_position hup
+		union select
+		heu.user_login_name as userAccount,heu.position_id as
+		positionId from
+		hx_emp_unload heu)
+		t left join
+		(select thp.position_code,thp.org_id from
+		hx_position thp
+		union select emp.positioncode as
+		position_code,left(emp.positioncode,
+		(length(emp.positioncode) - 10))
+		AS org_id from emp_empposition emp
+		) hp
+		on t.positionId =
+		hp.position_code where 1=1
+		<if test="positions != null">
+			and t.positionId in
+			<foreach item="item" index="index" collection="positions"
+				open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		and hp.org_id = (
+		SELECT hfp.org_code FROM hx_fittingstock_part hfp WHERE hfp.part_id IN
+		(SELECT hcsm.dqgsdm FROM hx_custom_sale_mapping hcsm WHERE
+		hcsm.shgsdm = (select service_unit
+		from (select service_unit,service_id as id from hx_service_ticket
+		union
+		select service_unit,apply_id as id from hx_service_long_distance
+		union
+		select service_unit,apply_id as id from hx_service_retreat_replacement
+		) t1 where t1.id = #{id}
+		)))
+	</select>
+	
+	<!-- 退换机申请国美售后主管权限关联品类 -->
+	<select id="queryGomeParticipantsControlCategory" resultType="com.gome.gmhx.jbpm.JbpmParticipant"
+		parameterType="map">
+		select t.userAccount,t.positionId ,'service' as positionType from (
+		select hul.user_login_name as userAccount,t.position_id as positionId
+		from hx_user_unload hul inner join (
+		select user_login_name,position_id from hx_emp_unload
+		union
+		select user_login_name,position_id from hx_user_position
+		) t on hul.user_login_name=t.user_login_name
+		where t.position_id in (
+			select position_id from hx_position_category where position_category = (
+				select category  from hx_service_retreat_replacement where apply_id=#{id}
+			) 
+		)
+		<if test="positions != null">
+			and t.position_id in
+			<foreach item="item" index="index" collection="positions"
+				open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		and hul.user_org_id = 'GMZB'
+		) t
+	</select> 
+	
+	<!-- 结算单根据申请网点下普通岗的人 -->
+	<select id="queryWebSiteParticipantsForServiceBill" resultType="com.gome.gmhx.jbpm.JbpmParticipant"
+		parameterType="map">
+		SELECT  t.userAccount,t.postionId,'service' AS positionType
+           FROM
+           (
+               SELECT  hul.user_login_name AS userAccount,t.position_id as postionId
+			   FROM
+			   hx_user_unload hul,hx_examine_settlement_ticket hest,
+			    (select user_login_name,position_id from hx_emp_unload
+					union
+			     select user_login_name,position_id from hx_user_position hup,hx_position hp 
+			     				where hup.position_id=hp.position_code and hp.position_type = '0'
+			   ) t 
+		   WHERE
+			hul.user_org_id = hest.service_unit and t.user_login_name = hul.user_login_name and hest.settlement_id=#{id}
+		) t
+	</select> 
+	
+</mapper>

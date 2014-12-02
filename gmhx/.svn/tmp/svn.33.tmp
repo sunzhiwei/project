@@ -1,0 +1,90 @@
+package com.gome.gmhx.service.common.impl;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.stereotype.Service;
+
+import com.gome.common.util.BeanTool;
+import com.gome.gmhx.entity.HxFitting;
+import com.gome.gmhx.entity.HxProductDetail;
+import com.gome.gmhx.service.common.ExcelImportService;
+@Service("excelImportService")
+public class ExcelImportServiceImpl implements ExcelImportService {
+	@Resource
+	SqlSessionTemplate sqlSessionTemplate;
+	
+	private String[] productDetailPropery = {"model","classifyCode"};
+	
+	private String[] fittingPropery = { "fittingCode", "fittingName",
+			"fittingType", "partsCode", "spec", "produceType", "gomeCode",
+			"fittingLevel", "cost", "networkPrice", "branchPrice", "userPrice",
+			"comment", "term", "isRetrieve", "isStop", "updateTime" };
+	
+	@Override
+	public void importHxProductDetail(Workbook xSSFWorkbook) {
+		Sheet st= xSSFWorkbook.getSheetAt(0);
+		List<Object> hxProductDetails= this.xSSFSheetToObjectList(st, new HxProductDetail(), productDetailPropery);
+		//TODO:保存
+	}
+	
+
+	@Override
+	public void importHxFitting(Workbook workbook) {
+		Sheet st= workbook.getSheetAt(0);
+		List<Object> hxFittingList = this.xSSFSheetToObjectList(st, new HxFitting(), fittingPropery);
+        System.out.println("laile");
+	}
+	
+	private List<Object> xSSFSheetToObjectList(Sheet sheet,Object src,String[] properies){
+		List<Object> objList = new ArrayList<Object>();
+		try{
+			for(int i=1;i<=sheet.getLastRowNum();i++){
+				Row row = sheet.getRow(i);
+				Object cloneObj = src.getClass().newInstance();
+				objList.add(cloneObj);
+				for(int index=0;index<row.getLastCellNum();index++){
+					Cell cell = row.getCell(index);
+					String value = null;
+					if(cell!=null){
+						 switch (cell.getCellType()) {
+			               case XSSFCell.CELL_TYPE_STRING:
+			                   value = cell.getStringCellValue();
+			                   break;
+			               case XSSFCell.CELL_TYPE_NUMERIC:
+			                      value = new DecimalFormat("0").format(cell.getNumericCellValue());
+			                   break;
+			               case XSSFCell.CELL_TYPE_FORMULA:
+			                      value = cell.getNumericCellValue() + "";
+			                   break;
+			               case XSSFCell.CELL_TYPE_BLANK:
+			                   break;
+			               case XSSFCell.CELL_TYPE_ERROR:
+			                   value = "";
+			                   break;
+			               case XSSFCell.CELL_TYPE_BOOLEAN:
+			                   value = cell.getBooleanCellValue()+"";
+			                   break;
+			               default:
+			                   value = null;
+			               }
+					}
+					BeanTool.setAttributeByString(cloneObj,properies[index], value);
+				}
+			}
+		}catch(Exception e){
+			throw new RuntimeException(e);
+		}
+		return objList;
+	}
+
+}

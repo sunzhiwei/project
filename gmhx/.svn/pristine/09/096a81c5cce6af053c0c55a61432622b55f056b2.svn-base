@@ -1,0 +1,22 @@
+package com.gome.gmhx.service.wsdl.service;
+
+import java.util.List;
+
+import com.gome.gmhx.entity.CrmWebsite;
+import com.gome.gmhx.entity.CustomerserviceSaleMapping;
+
+public interface CrmWebsiteService{
+	
+	public void insertCrmwebsite(List<CrmWebsite> list);
+	 
+	public void delCrmwebsite();
+
+	public boolean validateBarCode(String brand, String category, String productCode, String innerCode, String outerCode);
+	
+	public void delCustomerserviceSaleMapping();
+	 
+	public void insertCustomerserviceSaleMapping(List<CustomerserviceSaleMapping> list);
+
+	public String insertResetPassword(String xmlData);
+	 
+}

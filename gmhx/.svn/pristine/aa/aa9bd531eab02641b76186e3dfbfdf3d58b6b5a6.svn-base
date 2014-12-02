@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gome.gmhx.dao.materialmanage.HxParcelReceiptDao">
+  <resultMap id="BaseResultMap" type="com.gome.gmhx.entity.HxParcelReceipt">
+	<result property="orgId"                      column="org_id"                      jdbcType="VARCHAR"/>
+	<result property="parcelCode"                 column="parcel_code"                 jdbcType="VARCHAR"/>
+	<result property="billsCode"                  column="bills_code"                  jdbcType="VARCHAR"/>
+	<result property="receiveUnit"                column="receive_unit"                jdbcType="VARCHAR"/>
+	<result property="carrierUnit"                column="carrier_unit"                jdbcType="VARCHAR"/>
+	<result property="state"                      column="state"                       jdbcType="VARCHAR"/>
+	<result property="updateDate"                 column="update_date"                 jdbcType="TIMESTAMP"/>
+	<result property="sendDate"                   column="send_date"                   jdbcType="TIMESTAMP"/>
+	<result property="deliveryWay"                column="delivery_way"                jdbcType="VARCHAR"/>
+	<result property="trantransportationExpenses" column="trantransportation_expenses" jdbcType="VARCHAR"/>
+	<result property="packageNumber"              column="package_number"              jdbcType="VARCHAR"/>
+	<result property="packageWeight"              column="package_weight"              jdbcType="VARCHAR"/>
+	<result property="packageVolume"              column="package_volume"              jdbcType="VARCHAR"/>
+	<result property="volumeWeight"               column="volume_weight"               jdbcType="VARCHAR"/>
+	<result property="receiveName"                column="receive_name"                jdbcType="VARCHAR"/>
+	<result property="receivePhone"               column="receive_phone"               jdbcType="VARCHAR"/>
+	<result property="receivePost"                column="receive_post"                jdbcType="VARCHAR"/>
+	<result property="receiveAddress"             column="receive_address"             jdbcType="VARCHAR"/>
+	<result property="note"                       column="note"                        jdbcType="VARCHAR"/>
+	<result property="founders"                   column="founders"                    jdbcType="VARCHAR"/>
+	<result property="founderDate"                column="founder_date"                jdbcType="TIMESTAMP"/>
+	<result property="modefieds"                  column="modefieds"                   jdbcType="VARCHAR"/>
+	<result property="modefiedDate"               column="modefied_date"               jdbcType="TIMESTAMP"/>
+	<result property="listNumber"                 column="list_number"                 jdbcType="VARCHAR"/>
+	<result property="sendNumber"                 column="send_number"                 jdbcType="VARCHAR"/>
+	<result property="outDate"                    column="out_date"                    jdbcType="TIMESTAMP"/>
+	<result property="sendUnit"                   column="send_unit"                   jdbcType="VARCHAR"/>
+    <result property="receiveDate"                column="receive_date"                jdbcType="TIMESTAMP"/>
+	<result property="Type"                       column="type"                        jdbcType="VARCHAR"/>
+	<result property="fittingCode"                column="fitting_code"                jdbcType="VARCHAR"/>
+	<result property="fittingName"                column="fitting_name"                jdbcType="TIMESTAMP"/>
+	<result property="norms"                      column="norms"                       jdbcType="VARCHAR"/>
+	<result property="number"                     column="number"                      jdbcType="VARCHAR"/>
+</resultMap>
+
+	<select id="getHxParcelReceiptPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
+	 SELECT a.org_id, a.parcel_code, a.bills_code, a.carrier_unit, a.state,a.update_date, 
+    a.send_date, a.delivery_way, a.trantransportation_expenses, a.package_number, a.package_weight, 
+    a.package_volume, a.volume_weight, a.receive_name, a.receive_phone, a.receive_post, a.receive_address, 
+    a.note, a.founders, a.founder_date, a.modefieds, a.modefied_date,a.list_number, a.send_number, 
+    a.out_date, a.receive_date, a.type, a.fitting_code, a.fitting_name, a.norms, 
+    a.number,
+    (select code_value from v_code where code_id='jg' and a.receive_unit=code_key )receive_unit, 
+    (select code_value from v_code where code_id='jg' and a.send_unit=code_key )send_unit
+    from hx_parcel_delivery a WHERE 1=1 and a.state='02'
+        <if test="param.parcelCode!= null and param.parcelCode!= '' ">
+		   and parcel_code like CONCAT('%',#{param.parcelCode},'%')</if>
+	    <if test="param.billsCode!= null and param.billsCode!= '' ">
+		   and bills_code like CONCAT('%',#{param.billsCode},'%')</if>
+        <if test="param.sendUnit!= null and param.sendUnit!= '' ">
+		   and send_unit like CONCAT('%',#{param.sendUnit},'%')</if>
+	    <if test="param.receiveUnit!= null and param.receiveUnit!= '' ">
+		   and receive_unit like CONCAT('%',#{param.receiveUnit},'%')</if>
+		<if test="param.carrierUnit!= null and param.carrierUnit!= '' ">
+		   and carrier_unit like CONCAT('%',#{param.carrierUnit},'%')</if>
+		<if test="param.sendDate_sta !=null and param.sendDate_sta != '' ">
+		   <![CDATA[ and send_date >=#{param.sendDate_sta} ]]>   </if>        
+		<if test="param.sendDate_end !=null and param.sendDate_end != '' ">
+		   <![CDATA[ and send_date <=#{param.sendDate_end} ]]>   </if>        
+	</select>
+	
+	<insert id="addHxParcelReceipt" parameterType="com.gome.gmhx.entity.HxParcelReceipt">
+	</insert>
+	
+	<select id="getHxParcelReceiptById" parameterType="string" resultMap="BaseResultMap">
+	</select>
+	
+	<update id="updateHxParcelReceipt" parameterType="com.gome.gmhx.entity.HxParcelReceipt">
+	update hx_parcel_delivery set state='03',receive_date=now() where org_id=#{orgId};
+	</update>
+	
+	<update id="updateHxCurrentStock" parameterType="com.gome.gmhx.entity.HxParcelReceipt">
+	update hx_current_stock set stock=stock+#{number},count_way=count_way-#{number}
+	 where org_id=#{receiveUnit}
+	 and fitting_code =#{fittingCode};
+	<!--   and type=#{param.type}; 总部,分部,网点    -->
+	</update>     
+	
+	<select id="getHxParcelReceiptExport" parameterType="com.gome.gmhx.entity.HxParcelReceipt" resultType="hashmap">
+       SELECT a.org_id, a.parcel_code, a.bills_code, a.carrier_unit, a.state,a.update_date, 
+    a.send_date, a.delivery_way, a.trantransportation_expenses, a.package_number, a.package_weight, 
+    a.package_volume, a.volume_weight, a.receive_name, a.receive_phone, a.receive_post, a.receive_address, 
+    a.note, a.founders, a.founder_date, a.modefieds, a.modefied_date,a.list_number, a.send_number, 
+    a.out_date, a.receive_date, a.type, a.fitting_code, a.fitting_name, a.norms, 
+    a.number,
+    (select code_value from v_code where code_id='jg' and a.receive_unit=code_key )receive_unit, 
+    (select code_value from v_code where code_id='jg' and a.send_unit=code_key )send_unit
+    from hx_parcel_delivery a WHERE 1=1 and a.state='02'
+    </select>
+	 
+    <select id="getShowById" parameterType="string" resultMap="BaseResultMap">
+      SELECT a.org_id, a.parcel_code, a.bills_code, a.carrier_unit,a.update_date, 
+    a.send_date, a.delivery_way, a.trantransportation_expenses, a.package_number, a.package_weight, 
+    a.package_volume, a.volume_weight, a.receive_name, a.receive_phone, a.receive_post, a.receive_address, 
+    a.note, a.founders, a.founder_date, a.modefieds, a.modefied_date,a.list_number,a.send_number, 
+    a.out_date, a.receive_date, a.type, a.fitting_code, a.fitting_name, a.norms, 
+    a.number,a.receive_unit,
+    (select code_value from hx_code_setting where code_id='ybzt' and a.state=code_key )state,
+    (select code_value from v_code where code_id='jg' and a.receive_unit=code_key )receiveUnitName, 
+    (select code_value from v_code where code_id='jg' and a.send_unit=code_key )send_unit
+    from hx_parcel_delivery a WHERE  org_id=#{orgId}
+    </select>
+	       
+	 <!-- 邮包收发货历史 -->      
+	<select id="getHxParcelPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
+	 SELECT a.org_id, a.parcel_code, a.bills_code, a.carrier_unit, a.state,a.update_date, 
+    a.send_date, a.delivery_way, a.trantransportation_expenses, a.package_number, a.package_weight, 
+    a.package_volume, a.volume_weight, a.receive_name, a.receive_phone, a.receive_post, a.receive_address, 
+    a.note, a.founders, a.founder_date, a.modefieds, a.modefied_date,a.list_number, a.send_number, 
+    a.out_date, a.receive_date, a.type, a.fitting_code, a.fitting_name, a.norms, 
+    a.number,
+    (select code_value from v_code where code_id='jg' and a.receive_unit=code_key )receive_unit, 
+    (select code_value from v_code where code_id='jg' and a.send_unit=code_key )send_unit
+    from hx_parcel_delivery a WHERE 1=1 
+        <if test="param.parcelCode!= null and param.parcelCode!= '' ">
+		   and parcel_code like CONCAT('%',#{param.parcelCode},'%')</if>
+	    <if test="param.billsCode!= null and param.billsCode!= '' ">
+		   and bills_code like CONCAT('%',#{param.billsCode},'%')</if>
+        <if test="param.sendUnit!= null and param.sendUnit!= '' ">
+		   and send_unit like CONCAT('%',#{param.sendUnit},'%')</if>
+	    <if test="param.receiveUnit!= null and param.receiveUnit!= '' ">
+		   and receive_unit like CONCAT('%',#{param.receiveUnit},'%')</if>
+		<if test="param.carrierUnit!= null and param.carrierUnit!= '' ">
+		   and carrier_unit like CONCAT('%',#{param.carrierUnit},'%')</if>
+		<if test="param.sendDate_sta !=null and param.sendDate_sta != '' ">
+		   <![CDATA[ and send_date >=#{param.sendDate_sta} ]]>   </if>        
+		<if test="param.sendDate_end !=null and param.sendDate_end != '' ">
+		   <![CDATA[ and send_date <=#{param.sendDate_end} ]]>   </if>        
+	</select>  
+	       
+	
+</mapper>

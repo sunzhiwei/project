@@ -1,0 +1,17 @@
+package com.gome.gmhx.jbpm;
+
+public interface JbpmWorkEntity {
+
+	public String getProcessIntanceId();
+
+	public void setProcessIntanceId(String processIntanceId);
+	
+	public String getWorkEntityId();
+	
+	public String getWorkEntityType();
+	
+	public String getStatus();
+	
+	public void setStatus(String status);
+
+}

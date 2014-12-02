@@ -1,0 +1,114 @@
+package com.gome.gmhx.service.materialmanage.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.dao.materialmanage.HxParcelDeliveryDao;
+import com.gome.gmhx.entity.HxParcelDelivery;
+import com.gome.gmhx.service.materialmanage.HxParcelDeliveryService;
+
+@Service("HxParcelDeliveryService")
+public class HxParcelDeliveryServiceImpl implements HxParcelDeliveryService {
+     
+	@Resource
+	private HxParcelDeliveryDao ParcelDeliveryDao;
+	@Override
+	public List<Map<String, Object>> getParcelDeliveryPageList(Page page) {
+	
+		return ParcelDeliveryDao.getParcelDeliveryPageList(page);
+	}
+
+	@Override
+	public HxParcelDelivery getHxParcelDeliveryById(String parcelCode) {
+		return ParcelDeliveryDao.getHxParcelDeliveryById(parcelCode);
+	}
+
+	@Override
+	public List<Map<String, Object>> getParcelDeliveryExport(
+			HxParcelDelivery parcel) {
+		return ParcelDeliveryDao.getParcelDeliveryExport(parcel);
+	}
+
+	@Override
+	public List<String> getOrgnazationBySuit(String receiveUnit) {
+		
+		return ParcelDeliveryDao.getOrgnazationBySuit(receiveUnit);
+	}
+
+
+	@Override
+	public void updateParcelDelivery(HxParcelDelivery parcel) {
+		    ParcelDeliveryDao.updateParcelDelivery(parcel);
+		
+	}
+
+	@Override
+	public HxParcelDelivery getsendParcelDeliveryShow(String parcelCode) {
+		return ParcelDeliveryDao.getsendParcelDeliveryShow(parcelCode);
+	}
+
+
+
+	@Override
+	public String getParcelCode(String number) {
+		return ParcelDeliveryDao.getParcelCode(number);
+	}
+
+	@Override
+	public void addHxParcelDelivery(Map<String, Object> map) {
+		ParcelDeliveryDao.addHxParcelDelivery(map);
+	}	
+
+
+	@Override
+	public HxParcelDelivery getsendById(String parcelCode) {
+		return ParcelDeliveryDao.getsendById(parcelCode);
+	}
+
+@Override
+public void updatesendParcelDelivery(Map<String, String> map) {
+	ParcelDeliveryDao.updatesendParcelDelivery(map);
+	
+}
+
+
+
+@Override
+public List<Map<String, Object>> getApplayCodeList(Page page) {
+	
+	return ParcelDeliveryDao.getApplayCodeList(page);
+}
+
+@Override
+public List<Map<String, Object>> getParcelDeliveryDetail(String parcelCode) {
+	return ParcelDeliveryDao.getParcelDeliveryDetail(parcelCode);
+}
+
+@Override
+public String getListNumber(String companyId) {
+	return ParcelDeliveryDao.getListNumber(companyId);
+	
+}
+
+@Override
+public void updateHxCurrentStock(Map<String, String> map) {
+	ParcelDeliveryDao.updateHxCurrentStock(map);
+	
+}
+
+@Override
+public void delParcelDelivery(String parcelCode) {
+	ParcelDeliveryDao.delParcelDelivery(parcelCode);
+	
+}
+
+
+
+
+
+}

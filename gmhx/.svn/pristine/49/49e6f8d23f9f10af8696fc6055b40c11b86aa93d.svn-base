@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gome.gmhx.dao.wsdl.CrmWebsiteDao">
+	
+	<resultMap id="BarCodeRulesMap" type="com.gome.gmhx.entity.HxBarCodeRules">
+	    <id property="rulesId" column="rules_id" jdbcType="INTEGER"/>
+	    <result property="gomeCode"                 column="gome_code"                    jdbcType="VARCHAR"/>
+		<result property="category"                 column="category"                     jdbcType="VARCHAR"/>
+		<result property="barCodeNumber"            column="bar_code_number"              jdbcType="INTEGER"/>
+		<result property="insideMachine"            column="inside_machine"               jdbcType="INTEGER"/>
+		<result property="insideMachineOne"         column="inside_machine_one"           jdbcType="INTEGER"/>
+		<result property="insideMachineTwo"         column="inside_machine_two"           jdbcType="INTEGER"/>
+		<result property="insideMachineContent"     column="inside_machine_content"       jdbcType="VARCHAR"/>
+		<result property="insideMachineContentOne"  column="inside_machine_content_one"   jdbcType="VARCHAR"/>
+		<result property="insideMachineContentTwo"  column="inside_machine_content_two"   jdbcType="VARCHAR"/>
+		<result property="outsideMachine"           column="outside_machine"              jdbcType="INTEGER"/>
+		<result property="outsideMachineOne"        column="outside_machine_one"          jdbcType="INTEGER"/>
+		<result property="outsideMachineTwo"        column="outside_machine_two"          jdbcType="INTEGER"/>
+		<result property="outsideMachineContent"    column="outside_machine_content"      jdbcType="VARCHAR"/>
+		<result property="outsideMachineContentOne" column="outside_machine_content_one"  jdbcType="VARCHAR"/>
+		<result property="outsideMachineContentTwo" column="outside_machine_content_two"  jdbcType="VARCHAR"/>
+		<result property="note"                     column="note"                         jdbcType="VARCHAR"/>
+		<result property="createDate"               column="create_date"                  jdbcType="TIMESTAMP"/>
+		<result property="modifieDate"              column="modifie_date"                 jdbcType="TIMESTAMP"/>
+	</resultMap>
+	
+	<resultMap id="CodeBarMap" type="com.gome.gmhx.entity.HxCodeBar" >
+	    <result column="id" property="id" jdbcType="VARCHAR" />
+	    <result column="compare_type" property="compareType" jdbcType="VARCHAR" />
+	    <result column="inner_code1" property="innerCode1" jdbcType="VARCHAR" />
+	    <result column="inner_code2" property="innerCode2" jdbcType="VARCHAR" />
+	    <result column="outer_code" property="outerCode" jdbcType="VARCHAR" />
+	    <result column="inner_model1" property="innerModel1" jdbcType="VARCHAR" />
+	    <result column="inner_model2" property="innerModel2" jdbcType="VARCHAR" />
+	    <result column="outer_model" property="outerModel" jdbcType="VARCHAR" />
+	    <result column="whole_model" property="wholeModel" jdbcType="VARCHAR" />
+	    <result column="code_begin" property="codeBegin" jdbcType="INTEGER" />
+	    <result column="comment" property="comment" jdbcType="VARCHAR" />
+	    <result column="update_time" property="updateTime" jdbcType="DATE" />
+  	</resultMap>
+	
+	<select id="getHxBarCodeRulesByProductCode" parameterType="string" resultMap="BarCodeRulesMap">
+		SELECT * FROM `hx_bar_code_rules`
+		WHERE gome_code = (SELECT gome_code FROM hx_product_detail WHERE product_code = #{productCode})
+	</select>
+	
+	<select id="getHxCodeBarByProductCode" parameterType="string" resultMap="CodeBarMap">
+		SELECT * FROM `hx_code_bar`
+		WHERE compare_type = '02' 
+		AND whole_model = (SELECT model FROM hx_product_detail WHERE product_code = #{productCode})
+	</select>
+	
+	<select id="getHxServiceProductCountByInnerCode1" parameterType="string" resultType="int">
+		select count(*) from hx_service_product where internal_machine_code1 = #{innerCode1}
+	</select>
+	
+	<select id="getHxServiceProductCountByInnerCode2" parameterType="string" resultType="int">
+		select count(*) from hx_service_product where internal_machine_code2 = #{innerCode2}
+	</select>
+	
+	<select id="getHxServiceProductCountByOuterCode" parameterType="string" resultType="int">
+		select count(*) from hx_service_product where external_machine_code = #{outerCode}
+	</select>
+	
+	<select id="getHxServiceProductCountByMachineCode" parameterType="string" resultType="int">
+		select count(*) from hx_service_product where machine_code = #{machineCode}
+	</select>
+	
+	<delete id="delCrmwebsite" >
+		delete from crm_website 
+	</delete>
+	
+	<insert id="insertCrmwebsite">
+		insert into crm_website(azwd01,azw_azwd01,wdmc,gsxx01,wdjb,ismj,wdlx,wdxz,siqy,dhazbj,jxdf,ismsg,update_flag) values
+		<foreach collection="list" item="item" separator="," >
+	    	(#{item.partner},#{item.partner1},#{item.description},#{item.sales_org},#{item.partner2},#{item.zzafld00004d},#{item.ind_sector},
+	    	#{item.bpkind},#{item.zzafld00001d},#{item.zdhaz},#{item.zzafld00004v},#{item.zzafld000061},#{item.update_flag})
+	    </foreach>
+	</insert>
+  
+  	<delete id="delCustomerserviceSaleMapping" >
+		delete from hx_customerservice_sale 
+	</delete>
+	
+	<insert id="insertCustomerserviceSaleMapping">
+		insert into hx_customerservice_sale(number_int,zsales_org_1,zsales_org_dscr_1,zsales_org_2,zsales_org_dscr_2,zqypp,update_flag) values
+		<foreach collection="list" item="item" separator="," >
+	    	(#{item.number_int},#{item.zsales_org_1},#{item.zsales_org_dscr_1},#{item.zsales_org_2},
+	    	#{item.zsales_org_dscr_2},#{item.zqypp},#{item.update_flag}
+	    	)
+	    </foreach>
+	</insert>
+	
+	<insert id="insertResetPassword" parameterType="com.gome.gmhx.entity.HxResetPassword">
+		insert into hx_reset_password(id,fappaccount,frandpwd,fpassword,fresetdate) values
+	    (#{id,jdbcType=VARCHAR},#{fappaccount,jdbcType=VARCHAR},#{frandpwd,jdbcType=VARCHAR},#{fpassword,jdbcType=VARCHAR},
+	     #{fresetdate,jdbcType=TIMESTAMP})
+	</insert>
+</mapper>

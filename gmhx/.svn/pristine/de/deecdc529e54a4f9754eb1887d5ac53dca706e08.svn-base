@@ -1,0 +1,28 @@
+package com.gome.gmhx.service.servicemanage;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.entity.HxServiceRetreatReplacement;
+import com.gome.gmhx.entity.SysUser;
+
+public interface HxRetreatReplacementCreateService {
+
+	public void deleteRetreatReplacement(String serviceId);
+
+	public void updateRetreatReplacementStatus(String serviceId);
+	
+	public Map<String, Object> getRetreatReplacementById(String applyId);
+
+	public void insertRetreatReplacementCreate(HxServiceRetreatReplacement entity);
+
+	public List<Map<String, Object>> getRetreatReplacementCreatePageList(Page page);
+
+	public String saveRetreatReplacement(HxServiceRetreatReplacement retreatReplacement, SysUser sysUser);
+
+	public String updateRetreatReplacement(HxServiceRetreatReplacement retreatReplacement, SysUser sysUser);
+
+}

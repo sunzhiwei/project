@@ -1,0 +1,32 @@
+package com.gome.gmhx.jbpm.activityBehaviour;
+
+import org.jbpm.api.activity.ActivityBehaviour;
+import org.jbpm.api.activity.ActivityExecution;
+
+import com.gome.common.util.SpringUtil;
+import com.gome.gmhx.dao.servicemanage.HxServiceLongDistanceDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceRetreatReplacementDao;
+import com.gome.gmhx.dao.servicemanage.HxServiceTicketDao;
+
+
+public class ModifySuccessMarkBehaviour implements ActivityBehaviour {
+
+	@Override
+	public void execute(ActivityExecution execution) throws Exception {
+		String key = execution.getProcessInstance().getKey();
+		String processDefinationId = execution.getProcessDefinitionId();
+		
+		if(processDefinationId.startsWith("SP02")){//安装回执、维修回执、远程安装费申请
+			HxServiceTicketDao hxServiceTicketDao = (HxServiceTicketDao) SpringUtil.getBean("hxServiceTicketDao");
+			hxServiceTicketDao.updateServiceTicketEffective(key);
+		}else if(processDefinationId.startsWith("SP04")){//工程机
+			HxServiceLongDistanceDao serviceLongDistanceDao = (HxServiceLongDistanceDao) SpringUtil.getBean("hxServiceLongDistanceDao");
+			serviceLongDistanceDao.updateDistanceApplyEffective(key);
+		}else if(processDefinationId.startsWith("SP05")){
+			HxServiceRetreatReplacementDao serviceRetreatReplacementDao = (HxServiceRetreatReplacementDao) SpringUtil.getBean("hxServiceRetreatReplacementDao");
+			serviceRetreatReplacementDao.updateRetreatReplacementEffective(key);
+		}
+
+	}
+
+}

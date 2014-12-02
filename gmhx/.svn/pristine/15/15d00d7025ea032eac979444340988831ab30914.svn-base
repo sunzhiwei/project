@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gome.gmhx.dao.basicdata.HxCodeDao">
+	<resultMap id="hxCodeResult" type="com.gome.gmhx.entity.HxCode">
+		<result property="codeId" column="code_id" jdbcType="VARCHAR"/>
+		<result property="codeName" column="code_name" jdbcType="VARCHAR"/>
+		<result property="codeKey" column="code_key" jdbcType="VARCHAR"/>
+		<result property="codeValue" column="code_value" jdbcType="VARCHAR"/>
+	</resultMap>
+	<select id="getAll" resultMap="hxCodeResult">
+		SELECT * FROM v_code
+	</select>
+	
+	<select id="getCodeByKey" resultMap="hxCodeResult" parameterType="string">
+		SELECT * FROM v_code where code_id=#{codeKey}
+	</select>
+	
+	<select id="getHxCodePageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
+		SELECT code_id codeId, code_name codeName FROM hx_code where editable = 1
+	</select>
+	
+	<select id="getHxCodeSettingByCodeId" parameterType="string" resultType="hashmap">
+		SELECT code_id codeId, code_key codeKey, code_value codeValue from hx_code_setting where code_id=#{codeId} order by code_key
+	</select>
+	
+	<select id="getOrgCombobox" resultType="hashmap">
+		select id, name from hx_organization_unload
+	</select>
+	
+	<select id="getFittingMenu" parameterType="string" resultType="hashmap">
+		select t.fitting_auth_id id, t1.fitting_auth_name name
+		from hx_position_fitting t, hx_fitting_auth t1
+		where t.fitting_auth_id=t1.fitting_auth_id and t.position_id=#{positionId}
+	</select>
+	
+	<insert id="insertSetting" parameterType="com.gome.gmhx.entity.HxCode">
+		insert into hx_code_setting values(#{codeId},#{codeKey},#{codeValue})
+	</insert>
+	
+	<select id="getFbOrgCombobox" resultType="hashmap">
+		select org_id as id, org_name as name from hx_organization where is_fitting_stock='1'
+	</select>
+	
+	<select id="getWdOrgCombobox" resultType="hashmap">
+		select org_id as id, org_name as name from hx_organization where fitting_pid is not null
+	</select>
+</mapper>

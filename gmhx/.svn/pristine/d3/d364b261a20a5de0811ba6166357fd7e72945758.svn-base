@@ -1,0 +1,225 @@
+package com.gome.gmhx.service.wsdl.service.impl;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Service;
+
+import com.gome.gmhx.dao.basicdata.HxBarCodeRulesDao;
+import com.gome.gmhx.dao.basicdata.HxCodeBarDao;
+import com.gome.gmhx.dao.basicdata.HxProductDetailDao;
+import com.gome.gmhx.dao.wsdl.EccDao;
+import com.gome.gmhx.entity.EccBrand;
+import com.gome.gmhx.entity.EccGoods;
+import com.gome.gmhx.entity.EccGoodsCategory;
+import com.gome.gmhx.entity.EccRegional;
+import com.gome.gmhx.entity.EccRegionalSection;
+import com.gome.gmhx.entity.EccSalesOrg;
+import com.gome.gmhx.entity.EccSectionMapping;
+import com.gome.gmhx.entity.EccStore;
+import com.gome.gmhx.entity.HxBarCodeRules;
+import com.gome.gmhx.entity.HxCodeBar;
+import com.gome.gmhx.entity.HxProductDetail;
+import com.gome.gmhx.entity.ValidateEccBarCode;
+import com.gome.gmhx.service.wsdl.service.EccService;
+
+@Service("eccService")
+public class EccServiceImpl implements EccService {
+	@Resource
+	private EccDao eccDao;
+	@Resource
+	private HxProductDetailDao hxProductDetailDao;
+	@Resource
+	private HxBarCodeRulesDao hxBarCodeRulesDao;
+	
+	private HxCodeBarDao hxCodeBarDao;
+
+	@Override
+	public void handleEccBrand(List<EccBrand> list) {
+		eccDao.clearEccBrand();
+		eccDao.insertEccBrand(list);
+	}
+
+	@Override
+	public void handleEccGoods(List<EccGoods> list) {
+		eccDao.replaceEccGoods(list);
+	}
+
+	@Override
+	public void handleEccGoodsCategory(List<EccGoodsCategory> list) {
+		eccDao.clearEccGoodsCategory();
+		eccDao.insertEccGoodsCategory(list);
+	}
+
+	@Override
+	public void handleEccRegional(List<EccRegional> list) {
+		eccDao.clearEccRegional();
+		eccDao.insertEccRegional(list);
+	}
+
+	@Override
+	public void handleEccRegionalSection(List<EccRegionalSection> list) {
+		eccDao.clearEccRegionalSection();
+		eccDao.insertEccRegionalSection(list);
+	}
+
+	@Override
+	public void handleEccSalesOrg(List<EccSalesOrg> list) {
+		eccDao.clearEccSalesOrg();
+		eccDao.insertEccSalesOrg(list);
+	}
+
+	@Override
+	public void handleEccSectionMapping(List<EccSectionMapping> list) {
+		eccDao.clearEccSectionMapping();
+		eccDao.insertEccSectionMapping(list);
+	}
+
+	@Override
+	public void handleEccStore(List<EccStore> list) {
+		eccDao.clearEccStore();
+		eccDao.insertEccStore(list);
+	}
+
+	@Override
+	public String validateHxBarCode(ValidateEccBarCode vebc) {
+		/*
+		 * 1.根据机型代码查询国美代码
+		 * 2.根据机型代码在条形码对照表中获取该机型的条形码校验规则并进行校验。
+		 * 3.根据国美代码在条形码规则配置表中查询条形码校验规则并进行校验
+		 * 
+		 * 
+		 * 1.机型代码中含有W/的为三洋空调外机，匹配外机条码
+		 * 2.机型代码中含有G/的为三洋空调内机，匹配内机条码
+		 * 3.机型代码中含有-W的为伊莱克斯空调外机，匹配外机条码
+		 * 4.机型代码中含有-G的为伊莱克斯空调内机，匹配内机条码
+		 * 5.其他为伊莱克斯热水器 匹配内机条码
+		 * */
+		
+		StringBuffer message = new StringBuffer();
+		try{
+			String barCodeType = null;
+			String machineModeCode = vebc.getMachineModeCode();
+			String barCode = vebc.getBarCode();
+			
+			if(machineModeCode.indexOf("W/")>-1||machineModeCode.indexOf("-W")>-1){
+				barCodeType="W";
+			}else if(machineModeCode.indexOf("G/")>-1||machineModeCode.indexOf("-G")>-1){
+				barCodeType="G";
+			}else{
+				barCodeType="G";
+			}
+			//条形码对照校验
+			List<HxCodeBar> hxCodeBars  = this.hxCodeBarDao.getHxCodeBarByMachineCode(vebc.getMachineModeCode());
+			if(hxCodeBars.isEmpty()){
+				message.append("该机型条形码对照配置信息不存在！");
+				return message.toString();
+			}
+			
+			for(int i=0;i<hxCodeBars.size();i++){
+				HxCodeBar hxCodeBar = hxCodeBars.get(i);
+				String systemBarCode = null;
+				if(StringUtils.isNotEmpty(hxCodeBar.getInnerCode1().trim())&&barCodeType.equals("G")){
+					systemBarCode = hxCodeBar.getInnerCode1().trim();
+				}else if(StringUtils.isNotEmpty(hxCodeBar.getInnerCode2().trim())&&barCodeType.equals("G")){
+					systemBarCode = hxCodeBar.getInnerCode2().trim();
+				}else if(StringUtils.isNotEmpty(hxCodeBar.getOuterCode().trim())&&barCodeType.equals("W")){
+					systemBarCode = hxCodeBar.getOuterCode();
+				}
+				if(barCode.substring(Integer.parseInt(hxCodeBar.getCodeBegin())-1).matches("^("+systemBarCode.replace(";","|")+")\\w+")){
+						break;
+				}else{
+					if(i==hxCodeBars.size()-1){
+						message.append("条形码对照表匹配错误！");
+						return message.toString();
+					}
+				}
+			}
+
+			//校验条形码规则配置
+			List<HxProductDetail>  hxProductDetails = this.hxProductDetailDao.getHxProductDetailByMode(vebc.getBarCode());
+			if(hxProductDetails.size()>1){
+				message.append("该机型产品资料配置信息多余1条！");
+				return message.toString();
+			}else if(hxProductDetails.isEmpty()){
+				message.append("该机型产品资料配置信息不存在！");
+				return message.toString();
+			}
+			HxProductDetail hxProductDetail = hxProductDetails.get(0);
+			String gomeCode = hxProductDetail.getGomeCode();
+			List<HxBarCodeRules> hxBarCodeRules = this.hxBarCodeRulesDao.getHxBarCodeRulesByGomeCode(gomeCode);
+			
+			if(hxProductDetails.isEmpty()){
+				message.append("该机型条形码规则配置信息不存在！");
+				return message.toString();
+			}
+			
+			for(int i=0;i<hxCodeBars.size();i++){
+				HxBarCodeRules hxBarCodeRule = hxBarCodeRules.get(i);
+				boolean flag = true;
+				if(barCode.length()!=hxBarCodeRule.getBarCodeNumber()){
+					flag = false;
+				}
+				
+				if(barCodeType.equals("G")){
+					//校验内机位
+					if(hxBarCodeRule.getInsideMachine()!=null&&StringUtils.isNotEmpty(hxBarCodeRule.getInsideMachineContent())){
+						if(!vebc.getMachineModeCode().substring(hxBarCodeRule.getInsideMachine()-1).matches("^("+hxBarCodeRule.getInsideMachineContent().replace(";","|")+")\\w+")){
+							flag =false;
+						}
+					}
+					
+					if(hxBarCodeRule.getInsideMachineOne()!=null&&StringUtils.isNotEmpty(hxBarCodeRule.getInsideMachineContentOne())){
+						//校验内机1
+						if(!vebc.getMachineModeCode().substring(hxBarCodeRule.getInsideMachineOne()-1).matches("^("+hxBarCodeRule.getInsideMachineContentOne().replace(";","|")+")\\w+")){
+							flag =false;
+						}
+					}
+					//校验内机2
+					if(hxBarCodeRule.getInsideMachineTwo()!=null&&StringUtils.isNotEmpty(hxBarCodeRule.getInsideMachineContentTwo())){
+						//校验内机2
+						if(!vebc.getMachineModeCode().substring(hxBarCodeRule.getInsideMachineTwo()-1).matches("^("+hxBarCodeRule.getInsideMachineContentTwo().replace(";","|")+")\\w+")){
+							flag =false;
+						}
+					}
+				}else if(barCodeType.equals("W")){
+					//校验外机位
+					if(hxBarCodeRule.getOutsideMachine()!=null&&StringUtils.isNotEmpty(hxBarCodeRule.getOutsideMachineContent())){
+						if(!vebc.getMachineModeCode().substring(hxBarCodeRule.getOutsideMachine()-1).matches("^("+hxBarCodeRule.getOutsideMachineContent().replace(";","|")+")\\w+")){
+							flag =false;
+						}
+					}
+					
+					if(hxBarCodeRule.getOutsideMachineOne()!=null&&hxBarCodeRule.getOutsideMachineContentOne()!=null&&!"".equals(hxBarCodeRule.getOutsideMachineContentOne())){
+						//校验内机1
+						if(!vebc.getMachineModeCode().substring(hxBarCodeRule.getOutsideMachineOne()-1).matches("^("+hxBarCodeRule.getOutsideMachineContentOne().replace(";","|")+")\\w+")){
+							flag =false;
+						}
+					}
+					//校验内机2
+					if(hxBarCodeRule.getOutsideMachineTwo()!=null&&hxBarCodeRule.getOutsideMachineContentTwo()!=null&&!"".equals(hxBarCodeRule.getOutsideMachineContentTwo())){
+						//校验内机2
+						if(!vebc.getMachineModeCode().substring(hxBarCodeRule.getOutsideMachineTwo()-1).matches("^("+hxBarCodeRule.getOutsideMachineContentTwo().replace(";","|")+")\\w+")){
+							flag =false;
+						}
+					}
+				}
+				
+				if(!flag&&i==hxCodeBars.size()-1){
+					message.append("机型条形码规则配置中未通过!");
+				}else if(flag){
+					break;
+				}
+				
+			}
+		
+		}catch(Exception e){
+			message.append(e.getMessage());
+			e.printStackTrace();
+		}
+		return message.toString();
+	}
+
+}

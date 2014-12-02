@@ -1,0 +1,40 @@
+package com.gome.gmhx.dao.servicemanage;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.entity.HxServiceTicket;
+
+@Repository("hxServiceTicketDao")
+public interface HxServiceTicketDao {
+
+	Integer getMaxSequence();
+
+	void affirmServiceTicketByPrimaryKey(String serviceId);
+
+	void insertServiceTicket(HxServiceTicket serviceTicket);
+
+	void deleteServiceTicketByPrimaryKey(String serviceId);
+	
+	Map<String, Object> selectHxProductDetailById(String spbm);
+
+	List<Map<String, Object>> getServiceTicketPageList(Page page);
+
+	Map<String, Object> selectServiceTicketByPrimaryKey(String serviceId);
+
+	void updateServiceTicketByPrimaryKeySelective(HxServiceTicket serviceTicket);
+
+	void updateServiceTicketToFinish(String serviceId);
+
+	List<Map<String, Object>> getHxMaintenanceTree(String type);
+
+	List<Map<String, Object>> getWD();
+
+	HxServiceTicket getServiceTicketByServiceId(String workEntityId);
+
+	void updateServiceTicketEffective(String serviceId);
+
+}

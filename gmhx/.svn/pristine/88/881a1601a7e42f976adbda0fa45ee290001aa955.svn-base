@@ -1,0 +1,98 @@
+package com.gome.gmhx.entity;
+
+public class SysUser {
+	private String userAccount;
+	private String userName;
+	private String userPassword;
+	private int fromType;//用户来源 1国美 2第三方 3系统自建
+	private String companyId;
+	private String companyName;
+	private String sysPositionId;//系统岗位Id
+	private String sysPositionName;//系统岗位名称
+	private String fittingPositionId;//当前登录的物料岗位id
+	private String fittingOrgId;//当前登录物料岗位机构id
+	private int fittingPositionType;//当前物料岗位级别1总部 2分部 3网点
+	private String userState;//用户状态
+	
+	public String getUserAccount() {
+		return userAccount;
+	}
+	public void setUserAccount(String userAccount) {
+		this.userAccount = userAccount;
+	}
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	public String getUserPassword() {
+		return userPassword;
+	}
+	public void setUserPassword(String userPassword) {
+		this.userPassword = userPassword;
+	}
+	public int getFromType() {
+		return fromType;
+	}
+	public void setFromType(int fromType) {
+		this.fromType = fromType;
+	}
+	public String getCompanyId() {
+		return companyId;
+	}
+	public void setCompanyId(String companyId) {
+		this.companyId = companyId;
+	}
+	public String getCompanyName() {
+		return companyName;
+	}
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
+	}
+	public String getSysPositionId() {
+		return sysPositionId;
+	}
+	public void setSysPositionId(String sysPositionId) {
+		this.sysPositionId = sysPositionId;
+	}
+	public String getSysPositionName() {
+		return sysPositionName;
+	}
+	public void setSysPositionName(String sysPositionName) {
+		this.sysPositionName = sysPositionName;
+	}
+	public String getFittingPositionId() {
+		return fittingPositionId;
+	}
+	public void setFittingPositionId(String fittingPositionId) {
+		this.fittingPositionId = fittingPositionId;
+	}
+	public String getFittingOrgId() {
+		return fittingOrgId;
+	}
+	public void setFittingOrgId(String fittingOrgId) {
+		this.fittingOrgId = fittingOrgId;
+	}
+	public int getFittingPositionType() {
+		return fittingPositionType;
+	}
+	public void setFittingPositionType(int fittingPositionType) {
+		this.fittingPositionType = fittingPositionType;
+	}
+	
+	public String workFlowServiceUserId(){//该用户在工作流中系统的系统岗位的用户标识
+		return "service_"+this.getSysPositionId()+"_"+this.getUserAccount();
+	}
+	
+	public String workFlowMaterialUserId(){//该用户在工作流中系统的物料岗位的用户标识
+		return "material_"+this.getFittingPositionId()+"_"+this.getUserAccount();
+	}
+	public String getUserState() {
+		return userState;
+	}
+	public void setUserState(String userState) {
+		this.userState = userState;
+	}
+	
+}

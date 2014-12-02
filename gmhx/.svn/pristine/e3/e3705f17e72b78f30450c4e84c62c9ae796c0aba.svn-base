@@ -1,0 +1,78 @@
+package com.gome.gmhx.service.sysconfig.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.dao.sysconfig.HxOrganizationDao;
+import com.gome.gmhx.entity.HxOrganization;
+import com.gome.gmhx.service.sysconfig.HxOrganizationService;
+
+@Service("hxOrganizationService")
+public class HxOrganizationServiceImpl implements HxOrganizationService {
+	@Resource
+	private HxOrganizationDao hxOrganizationDao;
+
+	@Override
+	public List<Map<String, Object>> getOrganizationPageList(Page page) {
+		return hxOrganizationDao.getOrganizationPageList(page);
+	}
+
+	@Override
+	public void addOrganization(HxOrganization organization) {
+		hxOrganizationDao.addOrganization(organization);
+	}
+	
+	@Override
+	public HxOrganization getOrganizationById(String orgId) {
+		return hxOrganizationDao.getOrganizationById(orgId);
+	}
+
+	@Override
+	public void updateOrganization(HxOrganization organization) {
+		hxOrganizationDao.updateOrganization(organization);
+	}
+
+	@Override
+	public List<Map<String, Object>> getOrganizationExport(
+			HxOrganization organization) {
+		return hxOrganizationDao.getOrganizationExport(organization);
+	}
+
+	@Override
+	public List<HxOrganization> getOrganizationTree() {
+		return hxOrganizationDao.getOrganizationTree();
+	}
+
+	@Override
+	public String getChild(String rootId) {
+		StringBuilder result = new StringBuilder();
+		String children = rootId;
+		int level = 0;
+		while(children != null){
+			if(level == 0){
+				result.append(rootId);
+			}else{
+				result.append("," + children.toString());
+			}
+			children = hxOrganizationDao.getChild(children);
+			level ++;
+		}
+		return result.toString();
+	}
+
+	@Override
+	public HxOrganization getOrganizationByPeripheralId(String orgId) {
+		return hxOrganizationDao.getOrganizationByPeripheralId(orgId);
+	}
+
+	@Override
+	public void delOrganizationById(String orgId) {
+		hxOrganizationDao.delOrganizationById(orgId);
+	}
+
+}

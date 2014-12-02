@@ -1,0 +1,107 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="../../inc/header.jsp"%>
+<%@ include file="../../inc/resource.inc"%>
+<script type="text/javascript">
+	$(function() {
+		parent.$.messager.progress('close');
+		var positionType = $("#positionType").val();
+		if(positionType==2){
+			$("#orgFb").show();
+	      	$("#orgWd").hide();
+		}else if(positionType==3){
+			$("#orgFb").hide();
+	      	$("#orgWd").show();
+		}
+		$('#positionType').combobox({
+			 onSelect: function (record) {
+			 	var positionType = record.value;
+			    if(positionType==0 || positionType==1 || positionType == null ){
+			    	$("#orgFb").hide(); 
+			    	$("#orgWd").hide();
+			    }else if(positionType==2){
+			      	$("#orgFb").show();
+			      	$("#orgWd").hide();
+			    }else if(positionType==3){
+			      	$("#orgFb").hide();
+			      	$("#orgWd").show();
+			    }
+			}
+		});
+	});
+	
+	function submitForm(){
+		if(validateForm()){
+			$.post("${ctx}/hxPosition/updatePosition",$('#form').serialize(),
+					function(msg){
+						if($.parseJSON(msg).flag == "success"){
+							$.messager.alert('提示:','修改成功!');
+						}
+			});
+		}
+	}
+	
+	function goBack(){
+		window.location.href="${ctx}/hxPosition/positionView";
+	}
+	
+	function validateForm(){
+		var positionName = $("#positionName").val();
+		if(positionName==''||positionName==null){
+			alert("岗位名称不能为空");
+			return false;
+		}else{
+			if(positionName.length>25){
+				alert("岗位名称的长度不能大于25");
+				return false;
+			}
+		}
+		var positionType = $('#positionType').combobox('getValues');
+		if(positionType==''||positionType==null){
+			alert("岗位类型不能为空");
+			return false;
+		}
+		var orgFbId = $('#orgFbId').combobox('getValues');
+		var orgWdId = $('#orgWdId').combobox('getValues');
+		if(positionType==2){
+			$("#orgId").val(orgFbId);
+		}else if(positionType==3){
+			$("#orgId").val(orgWdId);
+		}
+		var orgId = $("#orgId").val();
+		if(positionType==2||positionType==3){
+			if(orgId==''||orgId==null){
+				alert("物料机构不能为空");
+				return false;
+			}
+		}
+		return true;
+	}
+</script>
+		<form id="form" method="post">
+			<div style="background-color:#95b8e7; text-align:center; color:#fff; font-weight:bold; border-bottom: 1px solid #000;">
+				修改岗位
+			</div>
+			<input type="hidden" id="orgId" name="orgId">
+			<table border=1 style="cellSpacing:1;cellPadding:3;width:100%;background-color:#eff5ff;border-collapse:collapse;">
+				<tr>
+					<td width="25%" align="center">岗位名称<font color="red">*</font></td>
+					<td width="25%"><input id="positionId" name="positionId" type="hidden" value="${position.positionId}"><input id="positionName" name="positionName" type="text" placeholder="请输入岗位名称"  value="${position.positionName}"></td>
+					<td width="25%" align="center">岗位类型<font color="red">*</font></td>
+					<td width="25%"><input id="positionType" name="positionType" type="text" placeholder="请选择岗位类型" editable="false" class="easyui-combobox" class="span2" value="${position.positionType}" data-options="url:'${ctx}/hxCode/getCombobox/gwlx'"  ></td>	
+				</tr>
+				<tr id="orgFb" style="display:none;">
+					<td width="25%" align="center">物料机构<font color="red">*</font></td>
+					<td width="25%" colspan="3"><input id="orgFbId" name="orgFbId" type="text" placeholder="请选择物料机构" editable="false" class="easyui-combobox" class="span2" value="${position.orgId}" data-options="url:'${ctx}/hxCode/getFbOrgCombobox'" ></td>	
+				</tr>
+				<tr id="orgWd" style="display:none;">
+					<td width="25%" align="center">物料机构<font color="red">*</font></td>
+					<td width="25%" colspan="3"><input id="orgWdId" name="orgWdId" type="text" placeholder="请选择物料机构" editable="false" class="easyui-combobox" class="span2" value="${position.orgId}" data-options="url:'${ctx}/hxCode/getWdOrgCombobox'" ></td>	
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div style="text-align:center;padding:5px">
+	    	<a href="#" class="easyui-linkbutton" data-options="toggle:true,group:'g1',iconCls:'icon-save'" onclick="submitForm();">保存</a>
+	    	<a href="#" class="easyui-linkbutton" data-options="toggle:true,group:'g1',iconCls:'icon-back'" onclick="goBack();">返回</a>
+	</div>
+</div>

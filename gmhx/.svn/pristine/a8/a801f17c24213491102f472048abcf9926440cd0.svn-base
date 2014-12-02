@@ -1,0 +1,144 @@
+package com.gome.gmhx.controller.workflow;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.gome.common.page.Page;
+import com.gome.common.util.JsonUtil;
+import com.gome.common.util.UUIDGenerator;
+import com.gome.gmhx.entity.HXPositionMapping;
+import com.gome.gmhx.service.sysconfig.HxPositionMappingService;
+import com.gome.gmhx.service.sysconfig.HxPositionService;
+
+@Controller
+@RequestMapping(value="/hxPositionMapping")
+public class HXPositionMappingController {
+
+	@Resource
+	private HxPositionMappingService hxPositionMappingService;
+	
+	@Resource
+	private HxPositionService hxPositionService;
+	
+	@RequestMapping(value="/positionMappingView")
+	public String positionMappingView(){
+		return "positionmapping/positionMapList";
+	}
+
+	@RequestMapping(value="/getPositionMappingPageList", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getPositionMappingList(Page page, HXPositionMapping positionMapping) throws Exception{
+		page.setParam(positionMapping);
+		List<Map<String, Object>> list = hxPositionMappingService.getPositionMappingPageList(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/addView")
+	public String addView(){
+		return "positionmapping/positionMappingAdd";
+	}
+	
+	@RequestMapping(value="/addPositionMapping")
+	@ResponseBody
+	public String addPositionMapping(HXPositionMapping positionMapping){
+		try {
+        	String id = UUIDGenerator.getUUID();
+        	positionMapping.setId(id);//设置主键
+        	hxPositionMappingService.addPositionMapping(positionMapping);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	@RequestMapping(value="/updateView")
+	public ModelAndView updateView(HXPositionMapping positionMapping) throws UnsupportedEncodingException{
+		ModelAndView mav = new ModelAndView("positionmapping/positionMappingUpdate");
+		// 解决页面传参中文乱码
+		positionMapping.setJbpmRoleCode(URLDecoder.decode(positionMapping.getJbpmRoleCode(),"utf-8"));
+		positionMapping.setJbpmRoleName(URLDecoder.decode(positionMapping.getJbpmRoleName(),"utf-8"));
+		mav.addObject("positionMapping", positionMapping);
+		return mav;
+	}
+	
+	@RequestMapping(value="/updatePositionMapping")
+	@ResponseBody
+	public String updatePositionMapping(HXPositionMapping positionMapping){
+		try {
+        	hxPositionMappingService.updatePositionMapping(positionMapping);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	@RequestMapping(value="/connectionView")
+	public ModelAndView connectionView(HXPositionMapping positionMapping) throws UnsupportedEncodingException{
+	    // 解决页面传参中文乱码
+		positionMapping.setJbpmRoleCode(URLDecoder.decode(positionMapping.getJbpmRoleCode(),"utf-8"));
+		positionMapping.setJbpmRoleName(URLDecoder.decode(positionMapping.getJbpmRoleName(),"utf-8"));
+		ModelAndView mav = new ModelAndView("positionmapping/connectionView");
+		mav.addObject("positionMapping", positionMapping);
+		return mav;
+	}
+	
+	@RequestMapping(value="/getPositionListBYCodeName", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getPositionListBYCodeName(Page page, HXPositionMapping positionMapping) throws Exception{
+		page.setParam(positionMapping);
+		List<Map<String, Object>> list = hxPositionService.getPositionListBYCodeName(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/getOtherPositionListBYCodeName", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getOtherPositionListBYCodeName(Page page, HXPositionMapping positionMapping) throws Exception{
+		page.setParam(positionMapping);
+		List<Map<String, Object>> list = hxPositionService.getOtherPositionListBYCodeName(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/connect", produces="text/plain;charset=UTF-8")
+    public @ResponseBody String connect(HttpServletRequest request,HXPositionMapping positionMapping) throws Exception{
+        String result = null;
+        try {
+            String positionIds = request.getParameter("positionIds");
+            String type=request.getParameter("type"); // 关联/解除关联类型
+            String positionIdsArray[]=positionIds.split(",");
+            hxPositionMappingService.connect(positionMapping,positionIdsArray,type);
+            result = "关联岗位成功";
+        } catch (Exception e) {
+            e.printStackTrace();
+            result = "服务器异常";
+        }
+        return result;
+    }
+	
+	@RequestMapping(value="/delete", produces="text/plain;charset=UTF-8")
+    public @ResponseBody String delete(HttpServletRequest request) throws Exception{
+        String result = null;
+        try {
+            String codes = request.getParameter("codes");
+            String codesArray[]=codes.split(",");
+            hxPositionMappingService.delete(codesArray);
+            result = "删除成功";
+        } catch (Exception e) {
+            e.printStackTrace();
+            result = "服务器异常";
+        }
+        return result;
+    }
+}

@@ -1,0 +1,66 @@
+package com.gome.gmhx.service.sysconfig.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.dao.sysconfig.HxPositionDao;
+import com.gome.gmhx.entity.EccGoodsCategory;
+import com.gome.gmhx.entity.HxPosition;
+import com.gome.gmhx.service.sysconfig.HxPositionService;
+
+@Service("hxPositionService")
+public class HxPositionServiceImpl implements HxPositionService {
+	@Resource
+	private HxPositionDao hxPositionDao;
+
+	@Override
+	public List<Map<String, Object>> getPositionPageList(Page page) {
+		return hxPositionDao.getPositionPageList(page);
+	}
+
+	@Override
+	public void addPosition(HxPosition position) {
+		hxPositionDao.addPosition(position);
+	}
+	
+	@Override
+	public HxPosition getPositionById(String positionId) {
+		return hxPositionDao.getPositionById(positionId);
+	}
+
+	@Override
+	public void updatePosition(HxPosition position) {
+		hxPositionDao.updatePosition(position);
+	}
+
+	@Override
+	public List<HxPosition> getPositionByCode(String positionId) {
+		return hxPositionDao.getPositionByCode(positionId);
+	}
+
+	@Override
+	public List<EccGoodsCategory> getPositionCategoryTree() {
+		return hxPositionDao.getPositionCategoryTree();
+	}
+
+	@Override
+	public List<EccGoodsCategory> getPositionCategoryTreeData(String positionId) {
+		return hxPositionDao.getPositionCategoryTreeData(positionId);
+	}
+
+	@Override
+	public void addPositionCategory(HxPosition hp) {
+		hxPositionDao.addPositionCategory(hp);
+	}
+
+	@Override
+	public void deletePositionCategoryByPositionId(String positionId) {
+		hxPositionDao.deletePositionCategoryByPositionId(positionId);
+	}
+
+}

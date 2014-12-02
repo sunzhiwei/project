@@ -1,0 +1,119 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="../inc/header.jsp"%>
+<%@ include file="../inc/resource.inc"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<script type="text/javascript">
+    var dataGrid;
+    $(function() {
+        dataGrid = $('#dataGrid').datagrid(
+                {
+                    title : '我的工作列表',
+                    url : "${ctx}/hxWorkFlow/getWorkPageList",
+                    nowrap : false,
+        			striped : true,
+        			height : document.body.clientHeight - 70,
+        			autoRowHeight : false,
+        			remoteSort : false,
+        			idField : 'ordercode',
+        			rownumbers : true,
+        			singleSelect : true,
+        			fitColumns : true,
+        			pagination : true,
+        			checkOnSelect : false,
+        			selectOnCheck : false,
+                    queryParams : {
+        				currentPage : 1,
+        				pageCount : 10
+        			},
+                    columns : [ [
+                            {
+                                field : 'ordercode',
+                                title : '单据编码',
+                                width : 10
+                            },{
+								field : 'action',
+								title : '操作',
+								width : 5,
+								formatter : function(value, row, index) {
+	                                return '<a href="#" onclick="updateHxMaterialManage(\''+ row.ordercode
+											+ '\',1);">同意</a>&nbsp;&nbsp;&nbsp;<a href="#" onclick="updateHxMaterialManage(\''
+											+ row.ordercode
+											+ '\',2);">不同意</a>';
+
+										}
+									} ] ],
+							loadMsg : "数据加载中...",
+							onBeforeLoad : function(param) {
+								$.serializeObject($('#searchForm'), param);
+								param.currentPage = param.page;
+								param.pageCount = param.rows;
+							}
+						});
+
+	});
+
+	function searchs() {
+		$('#dataGrid').datagrid('load');
+	}
+
+	$.serializeObject = function(form, o) {
+		$.each(form.serializeArray(), function(index) {
+			if (o[this['name']]) {
+				o[this['name']] = o[this['name']] + "," + this['value'];
+			} else {
+				o[this['name']] = this['value'];
+			}
+		});
+		return o;
+	};
+
+	function updateHxMaterialManage(ordercode, type) {
+		if(type==1){
+			$.messager.confirm('确认', '您确认同意该流程继续向下执行吗？', function(r) {
+				if (r) {
+					$.post(ctx + "/hxWorkFlow/updateHxMaterialManage", {
+						listNumber : ordercode,
+						type:type
+					}, function(data) {
+						$.messager.alert('消息提示', data, 'info');
+						searchs();
+					});
+				}
+			});
+		}else{
+			$.messager.confirm('确认', '您确认不同意该流程并打回吗？', function(r) {
+				if (r) {
+					$.post(ctx + "/hxWorkFlow/updateHxMaterialManage", {
+						listNumber : ordercode,
+						type:type
+					}, function(data) {
+						$.messager.alert('消息提示', data, 'info');
+						searchs();
+					});
+				}
+			});
+		}
+	}
+</script>
+</head>
+<body class="easyui-layout" style="padding: 10px">
+    <table id="dataGrid" toolbar="#tb"></table>
+    <div id="tb" style="height: auto">
+        <form id="searchForm">
+            <table>
+                <tr>
+                    <td>单据编码：</td>
+                    <td><input name="websiteCode" type="text" placeholder="" class="easyui-validatebox" /></td>
+                    <td><a href="javascript:void(0);" class="easyui-linkbutton"
+                        data-options="iconCls:'icon-search',plain:true" onclick="searchs();">查询</a></td>
+                </tr>
+                <tr>
+                    
+                </tr>
+            </table>
+        </form>
+    </div>
+</body>
+</html>

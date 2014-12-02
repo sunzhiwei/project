@@ -1,0 +1,18 @@
+package com.gome.gmhx.jbpm;
+
+/**
+* @ClassName: JBPMProcessDefinations
+* @Description: jbpm中流程定义名称（服务以"service_"开头，配件以"material_"开头）
+* @author liuchao43
+* @date 2014年8月27日 下午4:57:57
+*
+*/
+public interface JbpmProcessDefinations {
+	
+	public final String  headDeptNewMaterialAllocation = "material_headDeptNewMaterialAllocation";//总部物料新料调拨流程
+	public final String  subDeptNewMaterialApply = "material_subDeptNewMaterialApply";//分物料新料申请
+	public final String  serviceBillAuditing = "service_serviceBillAuditing";//服务单审核
+	
+	
+	
+}

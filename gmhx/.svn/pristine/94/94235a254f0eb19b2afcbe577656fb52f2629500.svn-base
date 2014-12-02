@@ -1,0 +1,38 @@
+package com.gome.gmhx.service.workflow.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.gmhx.jbpm.JbpmService;
+import com.gome.gmhx.service.workflow.HxWorkFlowService;
+
+@Service("hxWorkFlowService")
+public class HxWorkFlowServiceImpl implements HxWorkFlowService {
+	@Resource
+	JbpmService jbpmService;
+
+	@Override
+	public List<Map<String, Object>> getWorkPageList(Page page) {
+		Map<String,List<String>> idMap =   this.jbpmService.findAllMyTaskWorkEntityId();
+		Set<String> keys = idMap.keySet();
+		List<Map<String, Object>> returnList = new ArrayList<Map<String, Object>>();
+		for(String key:keys){
+			List<String> ids = idMap.get(key);
+			for(String id:ids){
+				Map<String, Object> map= new HashMap<String,Object>();
+				map.put("ordercode",key+"_"+id);
+				returnList.add(map);
+			}
+		}
+		return returnList;
+	}
+
+}

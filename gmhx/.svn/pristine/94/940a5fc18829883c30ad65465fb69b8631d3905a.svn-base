@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gome.gmhx.dao.wsdl.EccDao">
+	<update id="clearEccBrand">
+		truncate table ecc_brand
+	</update>
+	
+	<update id="clearEccGoodsCategory">
+		truncate table ecc_goods_category
+	</update>
+	
+	<update id="clearEccRegional">
+		truncate table ecc_regional
+	</update>
+	
+	<update id="clearEccRegionalSection">
+		truncate table ecc_regional_section
+	</update>
+	
+	<update id="clearEccSalesOrg">
+		truncate table ecc_sales_org
+	</update>
+	
+	<update id="clearEccSectionMapping">
+		truncate table ecc_section_mapping
+	</update>
+	
+	<update id="clearEccStore">
+		truncate table ecc_store
+	</update>
+	
+	<insert id="insertEccBrand">
+		insert into ecc_brand (PRODH, STUFE, VTEXT, UPDATE_FLAG) values
+		<foreach collection="list" item="item" separator="," >
+	    	(#{item.prodh,jdbcType=VARCHAR}, #{item.stufe,jdbcType=CHAR}, #{item.vtext,jdbcType=VARCHAR}, #{item.updateFlag,jdbcType=CHAR})
+	    </foreach>
+	</insert>
+	
+	<insert id="replaceEccGoods">
+	    replace into ecc_goods (MATNR, EAN11, MAKTX, GROES, MATKL, PRDHA, INHAL, INHBR, 
+	      TAKLV, MEINS, MSEHL, FLAG, SFZP, XCHPF, ZZSPSXZ, MTART, ZZSPCD, 
+	      BRGEW, HOEHE, CLASS1, CLASS2, CLASS3, ZZSPMD, UPDATE_FLAG) values 
+	      <foreach collection="list" item="item" separator="," >
+		      (#{item.matnr,jdbcType=VARCHAR}, #{item.ean11,jdbcType=VARCHAR}, #{item.maktx,jdbcType=VARCHAR}, #{item.groes,jdbcType=VARCHAR}, #{item.matkl,jdbcType=VARCHAR}, 
+		      #{item.prdha,jdbcType=VARCHAR}, #{item.inhal,jdbcType=VARCHAR}, #{item.inhbr,jdbcType=VARCHAR}, 
+		      #{item.taklv,jdbcType=CHAR}, #{item.meins,jdbcType=VARCHAR}, #{item.msehl,jdbcType=VARCHAR}, #{item.flag,jdbcType=VARCHAR}, 
+		      #{item.sfzp,jdbcType=CHAR}, #{item.xchpf,jdbcType=CHAR}, #{item.zzspsxz,jdbcType=VARCHAR}, #{item.mtart,jdbcType=VARCHAR}, 
+		      #{item.zzspcd,jdbcType=VARCHAR}, #{item.brgew,jdbcType=VARCHAR}, #{item.hoehe,jdbcType=VARCHAR}, 
+		      #{item.class1,jdbcType=VARCHAR}, #{item.class2,jdbcType=VARCHAR}, #{item.class3,jdbcType=VARCHAR}, 
+		      #{item.zzspmd,jdbcType=VARCHAR}, #{item.updateFlag,jdbcType=VARCHAR})
+	      </foreach>
+  </insert>
+  
+  <insert id="insertEccGoodsCategory">
+    insert into ecc_goods_category (CLASS, KSCHL, ZFLJB, 
+      ZSJFLDM, ZSFMJ, ABTNR, VTEXT, UPDATE_FLAG) values 
+      <foreach collection="list" item="item" separator="," >
+	      (#{item.class_,jdbcType=VARCHAR}, #{item.kschl,jdbcType=VARCHAR}, #{item.zfljb,jdbcType=CHAR}, 
+	      #{item.zsjfldm,jdbcType=VARCHAR}, #{item.zsfmj,jdbcType=CHAR}, #{item.abtnr,jdbcType=VARCHAR}, 
+	      #{item.vtext,jdbcType=VARCHAR}, #{item.updateFlag,jdbcType=CHAR})
+      </foreach>
+  </insert>
+  
+  <insert id="insertEccRegional">
+    insert into ecc_regional (BZIRK, BZTXT, UPDATE_FLAG) values
+    <foreach collection="list" item="item" separator="," >
+    	(#{item.bzirk,jdbcType=VARCHAR}, #{item.bztxt,jdbcType=VARCHAR}, #{item.updateFlag,jdbcType=CHAR})
+    </foreach>
+  </insert>
+  
+  <insert id="insertEccRegionalSection">
+    insert into ecc_regional_section (VKBUR, BEZEI, BZIRK, UPDATE_FLAG) values 
+    <foreach collection="list" item="item" separator="," >
+    	(#{item.vkbur,jdbcType=VARCHAR}, #{item.bezei,jdbcType=VARCHAR}, #{item.bzirk,jdbcType=VARCHAR}, #{item.updateFlag,jdbcType=CHAR})
+  	</foreach>
+  </insert>
+  
+  <insert id="insertEccSalesOrg">
+    insert into ecc_sales_org (VKORG, VTEXT, BUKRS, BUTXT, VKBUR, BEZEI, VKGRP, BEZEI2, UPDATE_FLAG) values 
+    <foreach collection="list" item="item" separator="," >
+    	(#{item.vkorg,jdbcType=VARCHAR}, #{item.vtext,jdbcType=VARCHAR}, #{item.bukrs,jdbcType=VARCHAR}, 
+	    #{item.butxt,jdbcType=VARCHAR}, #{item.vkbur,jdbcType=VARCHAR}, #{item.bezei,jdbcType=VARCHAR}, 
+	    #{item.vkgrp,jdbcType=VARCHAR}, #{item.bezei2,jdbcType=VARCHAR}, #{item.updateFlag,jdbcType=CHAR})
+	</foreach>
+  </insert>
+  
+  <insert id="insertEccSectionMapping">
+    insert into ecc_section_mapping (VKGRP, BEZEI, VKBUR, UPDATE_FLAG) values 
+    <foreach collection="list" item="item" separator="," >
+    	(#{item.vkgrp,jdbcType=VARCHAR}, #{item.bezei,jdbcType=VARCHAR}, #{item.vkbur,jdbcType=VARCHAR}, #{item.updateFlag,jdbcType=CHAR})
+  	</foreach>
+  </insert>
+  
+  <insert id="insertEccStore">
+    insert into ecc_store (VKORG, WERKS, BUKRS, NAME1, ZVKGRP, ZBEZEI, 
+      ZVKBUR, ZBEZEI2, STRAS, TELF1, UPDATE_FLAG) values 
+      <foreach collection="list" item="item" separator="," >
+	      (#{item.vkorg,jdbcType=VARCHAR}, #{item.werks,jdbcType=VARCHAR}, #{item.bukrs,jdbcType=VARCHAR}, 
+	      #{item.name1,jdbcType=VARCHAR}, #{item.zvkgrp,jdbcType=VARCHAR}, #{item.zbezei,jdbcType=VARCHAR}, 
+	      #{item.zvkbur,jdbcType=VARCHAR}, #{item.zbezei2,jdbcType=VARCHAR}, #{item.stras,jdbcType=VARCHAR}, 
+	      #{item.telf1,jdbcType=VARCHAR}, #{item.updateFlag,jdbcType=CHAR})
+	  </foreach>
+  </insert>
+</mapper>

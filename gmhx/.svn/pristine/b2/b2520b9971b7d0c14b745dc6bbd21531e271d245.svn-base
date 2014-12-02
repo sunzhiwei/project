@@ -1,0 +1,98 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="../inc/header.jsp"%>
+<%@ include file="../inc/resource.inc"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<script type="text/javascript">
+	
+	function submitForm(orderType) {
+		var checkAgree = $("input[name='approveComment']:checked").val();
+		var comment = $("#comment").val();
+		 $.post(ctx + "/hxWorkFlow/updateJbpmWorkEntity", {
+			workEntityId : '${order.listNumber}',
+			checkAgree : checkAgree,
+			approveComment : comment,
+			orderType:orderType
+		}, function(data) {
+			$.messager.alert("操作提示", data, "info", function() {
+				window.location.href = "${ctx}/hxWorkFlow/list";
+			});
+		}); 
+	}
+
+	function goBack() {
+		window.location.href = "${ctx}/hxWorkFlow/list";
+	}
+	
+	function reduceStock() {
+		$.post(ctx + "/hxMaterial/reduceStock", {
+			listNumber :  '${order.listNumber}',
+		}, function(data) {
+			data = $.parseJSON(data);
+			if (data.flag ==  "success") {
+				$.messager.alert('确认出库成功', '成功', 'info');
+				 window.location.href="${ctx}/hxWorkFlow/list";
+			} else {
+				$.messager.alert('确认出库失败', '失败', 'info');
+			}
+		});
+	}
+</script>
+</head>
+<body>
+
+<c:if test="${(codekey=='SP03') && (order.status=='S3' || order.status=='S4')}">
+<%@ include file="longDistanceInstall/longDistanceApplyView.jsp"%>
+<%@ include file="workProcessTour.jsp"%>
+<%@ include file="workCheck.jsp"%>			
+			<div style="text-align: center; padding: 5px">
+				<a href="#" class="easyui-linkbutton"
+					data-options="toggle:true,group:'g1',iconCls:'icon-save'"
+					onclick="submitForm('SP03');">保存</a> <a href="#"
+					class="easyui-linkbutton"
+					data-options="toggle:true,group:'g1',iconCls:'icon-back'"
+					onclick="goBack();">返回</a>
+			</div>
+
+
+</c:if>
+<c:if test="${(codekey=='SP04') && (order.status=='S3' || order.status=='S4')}">
+<%@ include file="projectInstall/installProjectView.jsp"%>
+<%@ include file="workProcessTour.jsp"%>
+<%@ include file="projectInstall/installProjectCheck.jsp"%>
+<div style="text-align: center; padding: 5px">
+				<a href="#" class="easyui-linkbutton"
+					data-options="toggle:true,group:'g1',iconCls:'icon-save'"
+					onclick="submitForm('SP04');">保存</a> <a href="#"
+					class="easyui-linkbutton"
+					data-options="toggle:true,group:'g1',iconCls:'icon-back'"
+					onclick="goBack();">返回</a>
+			</div>	
+</c:if>
+
+ <c:if test="${(codekey=='MP01' || codekey=='MP02') && (order.status=='S3' || order.status=='S4')}">
+ <%@ include file="workViewAndDetail.jsp"%>
+ <%@ include file="workProcessTour.jsp"%>
+ <%@ include file="workCheck.jsp"%>	
+			<div style="text-align: center; padding: 5px">
+				<a href="#" class="easyui-linkbutton"
+					data-options="toggle:true,group:'g1',iconCls:'icon-save'"
+					onclick="submitForm('MP');">保存</a> <a href="#"
+					class="easyui-linkbutton"
+					data-options="toggle:true,group:'g1',iconCls:'icon-back'"
+					onclick="goBack();">返回</a>
+			</div>
+
+		
+	</c:if>
+ <c:if test="${codekey!='SP03' && (order.status!='S3' && order.status!='S4')}">
+ <%@ include file="workViewAndDetail.jsp"%>
+ <%@ include file="workProcessTour.jsp"%>
+<div style="text-align:center;padding:5px">
+	<a href="#" class="easyui-linkbutton"  data-options="toggle:true,group:'g1',iconCls:'icon-save'"  onclick="reduceStock();">确认</a>
+	<a href="#" class="easyui-linkbutton"  data-options="toggle:true,group:'g1',iconCls:'icon-back'" onclick="javascript:window.location.href = '${ctx}/hxWorkFlow/list'">返回</a>
+</div>
+ </c:if>
+</body>
+</html>

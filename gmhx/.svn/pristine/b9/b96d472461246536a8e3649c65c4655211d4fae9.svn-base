@@ -1,0 +1,15 @@
+package com.gome.gmhx.dao.storeinfo;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.gome.common.page.Page;
+
+@Repository("hxCurrentStockDao")
+public interface HxCurrentStockDao {
+
+	public List<Map<String, Object>> getHxCurrentStockPageList(Page page);
+
+}

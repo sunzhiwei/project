@@ -1,0 +1,29 @@
+package com.gome.gmhx.controller.workflow;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping(value="/hxWorkFlow")
+public class HxWorkFlowController {
+
+	@RequestMapping(value="/list")
+	public String workList(){
+		return "workflow/workList";
+	}
+	
+	@RequestMapping(value="/done")
+	public String workDone(){
+		return "workflow/workDone";
+	}
+	
+	@RequestMapping(value="/ing")
+	public String workIng(){
+		return "workflow/workIng";
+	}
+	
+	@RequestMapping(value="/monitoring")
+	public String workMonitoring(){
+		return "workflow/workMonitoring";
+	}
+}

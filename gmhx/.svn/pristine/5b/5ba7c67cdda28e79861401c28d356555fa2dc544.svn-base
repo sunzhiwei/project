@@ -1,0 +1,72 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="../inc/header.jsp"%>
+<%@ include file="../inc/resource.inc"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<script type="text/javascript">
+	function submitForm() {
+		var type = $("input[name='approveComment']:checked").val();
+		var comment = $("#comment").val();
+		$.post(ctx + "/hxWorkFlow/updateHxMaterialManage", {
+			listNumber : '${m.listNumber}',
+			type : type,
+			approveComment : comment
+		}, function(data) {
+			$.messager.alert("操作提示", data, "info", function() {
+				window.location.href = "${ctx}/hxWorkFlow/list";
+			});
+		});
+	}
+
+	function goBack() {
+		window.location.href = "${ctx}/hxWorkFlow/list";
+	}
+</script>
+</head>
+<body>
+ <c:if test="${m.status=='S3' || m.status=='S4'}">
+ <%@ include file="workViewAndDetail.jsp"%>
+ <%@ include file="workProcessTour.jsp"%>
+		<div id="checkform">
+			<form id="form" method="post">
+				<input id="listNumber" type="hidden" value="${m.listNumber}">
+				<div
+					style="background-color: #95b8e7; text-align: left; color: #fff; font-weight: bold; border-bottom: 1px solid #000;">
+					审批提交</div>
+				<table border=1
+					style="cellSpacing: 1; cellPadding: 3; width: 100%; background-color: #eff5ff; border-collapse: collapse">
+					<tr>
+						<td width="25%" align="center">审批：</td>
+						<td width="25%"><input type="radio" checked="checked"
+							name="approveComment" value="1">同意&nbsp;&nbsp; <input
+							type="radio" name="approveComment" value="2">不同意</td>
+					</tr>
+					<tr>
+						<td width="25%" align="center">审批意见：</td>
+						<td width="25%" colspan="3"><textarea name="comment"
+								id="comment" rows="3" cols="52"></textarea></td>
+					</tr>
+				</table>
+			</form>
+			<div style="text-align: center; padding: 5px">
+				<a href="#" class="easyui-linkbutton"
+					data-options="toggle:true,group:'g1',iconCls:'icon-save'"
+					onclick="submitForm();">保存</a> <a href="#"
+					class="easyui-linkbutton"
+					data-options="toggle:true,group:'g1',iconCls:'icon-back'"
+					onclick="goBack();">返回</a>
+			</div>
+
+		</div>
+	</c:if>
+ <c:if test="${m.status!='S3' && m.status!='S4'}">
+其他非审批流程页面!!!
+ <%@ include file="workViewAndDetail.jsp"%>
+ <%@ include file="workProcessTour.jsp"%>
+<div style="text-align:center;padding:5px">
+<a href="#" class="easyui-linkbutton"  data-options="toggle:true,group:'g1',iconCls:'icon-back'" onclick="javascript:window.location.href = '${ctx}/hxWorkFlow/list'">返回</a>
+</div>
+ </c:if>
+</body>
+</html>

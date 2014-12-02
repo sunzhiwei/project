@@ -1,0 +1,167 @@
+package com.gome.gmhx.service.materialmanage.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.gome.common.page.Page;
+import com.gome.common.util.SysUtils;
+import com.gome.gmhx.dao.materialmanage.HxMaterialDao;
+import com.gome.gmhx.dao.materialmanage.HxParcelDeliveryDao;
+import com.gome.gmhx.entity.HxMaterialManage;
+import com.gome.gmhx.entity.HxParcelDelivery;
+import com.gome.gmhx.jbpm.JbpmService;
+import com.gome.gmhx.jbpm.JbpmTransactions;
+import com.gome.gmhx.jbpm.JbpmWorkEntityStatus;
+import com.gome.gmhx.service.materialmanage.HxMaterialService;
+import com.gome.gmhx.service.materialmanage.HxParcelDeliveryService;
+
+@Service("HxParcelDeliveryService")
+public class HxParcelDeliveryServiceImpl implements HxParcelDeliveryService {
+
+	@Resource
+	private HxParcelDeliveryDao parcelDeliveryDao;
+	@Resource
+	private HxMaterialDao hxMaterialDao;
+	@Resource
+	JbpmService jbpmService;
+
+	@Override
+	public List<Map<String, Object>> getParcelDeliveryPageList(Page page) {
+		List<String> list = this.jbpmService.findMyTaskWorkEntityIdByActivityName(JbpmWorkEntityStatus.status_post_sending);
+		List<Map<String, Object>> tmp = parcelDeliveryDao.getParcelDeliveryPageList(page);
+		List<Map<String, Object>> returnObj = new ArrayList<Map<String,Object>>();
+		//TODO 等优化性能
+		for(Map<String, Object> m: tmp){
+			for(String s: list){
+				if(m.get("list_number").equals(s) && !SysUtils.isMapContainValue(returnObj, (String)m.get("parcel_code"))){//由于listNumber出现1对多的parcel,过滤。
+					returnObj.add(m);
+				}
+			}
+		}
+		return returnObj;
+	}
+
+	@Override
+	public HxParcelDelivery getHxParcelDeliveryById(String parcelCode) {
+		return parcelDeliveryDao.getHxParcelDeliveryById(parcelCode);
+	}
+
+	@Override
+	public List<Map<String, Object>> getParcelDeliveryExport(
+			HxParcelDelivery parcel) {
+		return parcelDeliveryDao.getParcelDeliveryExport(parcel);
+	}
+
+	@Override
+	public List<String> getOrgnazationBySuit(String receiveUnit) {
+
+		return parcelDeliveryDao.getOrgnazationBySuit(receiveUnit);
+	}
+
+	@Override
+	public void updateParcelDelivery(HxParcelDelivery parcel, List<String> listNumbers) {
+		this.parcelDeliveryDao.deleteMaterialsByCode(parcel.getParcelCode());//批量删
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("parcelCode", parcel.getParcelCode());
+		for (String string : listNumbers) {
+			map.put("listNumber", string);
+			parcelDeliveryDao.addMaterials(map);//批量加
+		}
+		parcelDeliveryDao.updateParcelDelivery(parcel);
+	}
+
+	@Override
+	public HxParcelDelivery getsendParcelDeliveryShow(String parcelCode) {
+		return parcelDeliveryDao.getsendParcelDeliveryShow(parcelCode);
+	}
+
+	@Override
+	public String getParcelCode(String number) {
+		return parcelDeliveryDao.getParcelCode(number);
+	}
+
+	@Override
+	public void addHxParcelDelivery(Map<String, Object> map, List<String> listNumbers) {
+
+		parcelDeliveryDao.addHxParcelDelivery(map);
+		for (String string : listNumbers) {
+			map.put("listNumber", string);
+			parcelDeliveryDao.addMaterials(map);
+		}
+	}
+
+	@Override
+	public HxParcelDelivery getsendById(String parcelCode) {
+		return parcelDeliveryDao.getsendById(parcelCode);
+	}
+
+	@Override
+	public void updatesendParcelDelivery(Map<String, String> map) {
+		parcelDeliveryDao.updatesendParcelDelivery(map);
+
+	}
+
+	@Override
+	public List<Map<String, Object>> getApplayCodeList(Page page) {
+
+		return parcelDeliveryDao.getApplayCodeList(page);
+	}
+
+	@Override
+	public List<Map<String, Object>> getParcelDeliveryDetail(String parcelCode) {
+		return parcelDeliveryDao.getParcelDeliveryDetail(parcelCode);
+	}
+
+	@Override
+	public String getListNumber(String companyId) {
+		return parcelDeliveryDao.getListNumber(companyId);
+
+	}
+
+	@Override
+	public void updateHxCurrentStock(Map<String, String> map) {
+		parcelDeliveryDao.updateHxCurrentStock(map);
+
+	}
+
+	@Override
+	public void delParcelDelivery(String parcelCode) {
+		parcelDeliveryDao.deleteMaterialsByCode(parcelCode);
+		parcelDeliveryDao.delParcelDelivery(parcelCode);
+	}
+
+	@Override
+	public void sendDelivery(String parcelCode) {
+		List<String> listNumbers = new ArrayList<String>();
+		HxParcelDelivery parcel = this.parcelDeliveryDao.selectByPrimaryKey(parcelCode);
+		for (Map<String, Object> map : this.parcelDeliveryDao.selectMaterialsByCode(parcelCode)) {
+			listNumbers.add((String)map.get("list_number"));
+			HxMaterialManage hmm = hxMaterialDao.getHxMaterialManage((String)map.get("list_number"));
+			jbpmService.completeTask(hmm, JbpmTransactions.transactionOperationComplete, "邮包已发货");
+		}
+		for (String string : listNumbers) {
+			//更新申请单状态
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("status", JbpmWorkEntityStatus.status_post_receipt);
+			map.put("listNumber", string);
+			this.hxMaterialDao.updateStatus(map);
+		}
+		parcel.setState("02");
+		parcel.setUpdateDate(new Date());
+		parcel.setOutDate(new Date());
+		parcelDeliveryDao.updateParcelDelivery(parcel);
+	}
+
+	@Override
+	public HxParcelDelivery selectByPrimaryKey(String parcelCode) {
+		return this.parcelDeliveryDao.selectByPrimaryKey(parcelCode);
+	}
+
+}

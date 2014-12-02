@@ -1,0 +1,66 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="../inc/header.jsp"%>
+<%@ include file="../inc/resource.inc"%>
+<%
+    // 其他生成的动态页面共享ctx项目名称
+	request.setAttribute("ctx", request.getContextPath());
+
+%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<script type="text/javascript">
+function submitForm(orderType) {
+	var checkAgree = $("input[name='approveComment']:checked").val();
+	var comment = $("#comment").val();
+	var status='${order.status}';
+	if(orderType=='MP'&& status=='S6'){
+		reduceStock();
+	}else{
+		 $.post(ctx + "/hxWorkFlow/updateJbpmWorkEntity", {
+				workEntityId : '${order.listNumber}',
+				checkAgree : checkAgree,
+				approveComment : comment,
+				orderType:orderType
+			}, function(data) {
+				$.messager.alert("操作提示", data, "info", function() {
+					window.location.href = "${ctx}/hxWorkFlow/list";
+				});
+			}); 
+	}
+}
+
+function reduceStock() {
+	$.post(ctx + "/hxMaterial/reduceStock", {
+		listNumber :  '${order.listNumber}',
+	}, function(data) {
+		data = $.parseJSON(data);
+		if (data.flag ==  "success") {
+			$.messager.alert('确认出库成功', '成功', 'info');
+			 window.location.href="${ctx}/hxWorkFlow/list";
+		} else {
+			$.messager.alert('确认出库失败', '失败', 'info');
+			 window.location.href="${ctx}/hxWorkFlow/list";
+		}
+	});
+}
+
+function goBack() {
+	window.location.href = "${ctx}/hxWorkFlow/list";
+}
+</script>
+</head>
+<body>
+	<jsp:include page="${processInstanceToView }"></jsp:include>
+	<%@ include file="workProcessTour.jsp"%>
+	<c:choose>
+		<c:when test="${order.status=='S6'}">
+			<%@ include file="workReduceStock.jsp"%>
+		</c:when>
+		<c:otherwise>
+			<jsp:include page="${processInstanceToCheck }"></jsp:include>
+			<jsp:include page="${processInstanceToSave }"></jsp:include>
+		</c:otherwise>
+	</c:choose>
+</body>
+</html>

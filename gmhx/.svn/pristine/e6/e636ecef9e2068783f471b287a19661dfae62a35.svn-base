@@ -1,0 +1,236 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="../../inc/header.jsp"%>
+<%@ include file="../../inc/resource.inc"%>
+<html>
+<head>
+<script type="text/javascript">
+	var dataGrid;
+	$(function() {
+		dataGrid = $('#dataGrid').datagrid({
+			title : "故障维修代码",
+	       url : "${ctx}/maintenance/getMaintenancePageList/",
+			nowrap : false,
+			striped : true,
+			height : document.body.clientHeight - 70,
+			collapsible : true,
+			autoRowHeight : false,
+			remoteSort : false,
+			idField : 'classifyCode',
+			rownumbers : true,
+			fitColumns : true,
+			singleSelect : true,
+			pagination : true,
+			checkOnSelect : false,
+			selectOnCheck : false,
+			queryParams : {
+				currentPage : 1,
+				pageCount : 10
+			},
+			columns : [ [ {
+				field : 'category1',
+				title : '品类',
+				width : 10,
+				align:'center',
+			} ,{
+				field : 'fault_name',
+				title : '故障名称',
+				width : 25,
+				align:'center',
+				sortable : true
+			} , {
+				field : 'fault_code',
+				title : '故障代码',
+				width : 15,
+				align:'center',
+				sortable : true
+			} , {
+				field : 'parent_classify',
+				title : '上级分类',
+				width : 15,
+				align:'center',
+				sortable : true
+			} , {
+				field : 'p_number1',
+				title : '空调P数',
+				width : 15,
+				align:'center',
+				sortable : true
+			} , {
+				field : 'maintenance_costs',
+				title : '维修费用',
+				width : 10,
+				align:'center',
+				sortable : true
+			} , {
+				field : 'chose1',
+				title : '是否选择',
+				width : 10,
+				align:'center',
+				sortable : true
+			} , {
+				field : 'wet_enable1',
+				title : '是否启用',
+				width : 10,
+				align:'center',
+				sortable : true
+			} , {
+				field : 'wet_union1',
+				title : '是否关联配件',
+				width : 10,
+				align:'center',
+				sortable : true
+			},{
+				field : 'note',
+				title : '备注',
+				width : 10,
+				align:'center',
+				sortable : true
+			},{
+				field : 'action',
+				title : '操作',
+				align:'center',
+			} ] ],
+			toolbar : '#toolbar',
+			onLoadSuccess : function() {
+				$('#searchForm table').show();
+				$(this).datagrid('doCellTip',{'max-width':'300px','delay':500});
+				parent.$.messager.progress('close');
+			}
+		});
+      $('.datagrid-pager').pagination({
+			pageSize: 20,//每页显示的记录条数，默认为10   
+			 onSelectPage : function(pageNumber, pageSize) {
+					$(this).pagination('loading');
+					var queryParams = $.serializeObject($('#searchForm'));
+					queryParams.currentPage = pageNumber;
+					queryParams.pageCount = pageSize;
+					$('#dataGrid').datagrid("options").queryParams = queryParams;
+					$('#dataGrid').datagrid("reload");
+					$(this).pagination('loaded');
+				}
+		});
+		$("#query").on("click", function() {
+			dataGrid.datagrid('load', $.serializeObject($('#searchForm')));
+		});
+	});
+	
+	$.serializeObject = function(form) {
+		var o = {
+			currentPage : 1,
+			pageCount : 10
+		};
+		$.each(form.serializeArray(), function(index) {
+			if (o[this['name']]) {
+				o[this['name']] = o[this['name']] + "," + this['value'];
+			} else {
+				o[this['name']] = this['value'];
+			}
+		});
+		return o;
+	};
+
+	function refreshDataGrid() {
+		$('#dataGrid').datagrid("reload");
+		parent.$.modalDialog.handler.dialog('close');	
+	}	
+	
+	function back(){
+		window.location.href="${ctx}/maintenance/maintenanceView/";
+	}
+	
+	function importExcel(fault_code){
+		//window.location.href = "${ctx}/maintenance/importView";
+		parent.$.modalDialog({
+			title : '故障代码数据导入',
+			width : 400,
+			height :250,
+			closable : false,
+			href : '${ctx}/common/import/importData?templateName=faultmaintenancecode&actionName=importHxMaintenance',
+			buttons : [ 
+			{
+				text : '关闭',
+				handler : function() {
+					parent.$.modalDialog.handler.dialog('close');
+				}
+			}]
+		});
+	}
+	
+	function exportExcel(){
+		var opts = dataGrid.datagrid('getColumnFields');
+		var fieldArray = new Array();
+		var titleArray = new Array();
+		for(var i = 0; i < opts.length - 1 ;i++){//最后的操作不要
+			var column = dataGrid.datagrid('getColumnOption', opts[i]);
+			fieldArray.push(column.field);
+			titleArray.push(column.title);
+		}
+		window.location.href = "${ctx}/maintenance/exportExcel?" + encodeURI($('#searchForm').serialize()) + "&tableField=" + fieldArray.join("|") + "&tableHeader=" + encodeURI(encodeURI(titleArray.join("|")));
+	}
+	
+	
+</script>
+</head>
+<body>
+	<div class="easyui-layout" data-options="fit:true,border:false">
+		<div
+			data-options="region:'north',title:'查询条件',border:false,collapsible:false"
+			style="height: 130px; overflow: hidden;">
+			<form id="searchForm">
+				<table class="table table-hover table-condensed"
+					style="width: 100%; padding: 7px 80px 0px 80px">
+					<tr>
+						<td width="10%">品类</td>
+						<td width="25%"><input class="easyui-combobox" name="category"
+						data-options="url:'${ctx}/hxCode/getCombobox/wxpl'" /></td>
+						<td width="10%">故障名称</td>
+						<td width="25%"><input name="faultName"  class="span2" /></td>
+						<td width="10%">故障代码</td>
+						<td width="25%"><input name="faultCode"  class="span2" /></td>
+					</tr>
+					<tr>
+						<td width="10%">上级分类</td>
+						<td width="25%"><input name="parentClassify"  class="span2" /></td>
+						<td width="10%">空调P数</td>
+						<td width="25%"><input name="PNumber"  class="easyui-combobox"
+								data-options="url:'${ctx}/hxCode/getCombobox/ktps'" /></td>
+						<td width="10%">是否选择</td>
+						<td width="25%"><input class="easyui-combobox" name="chose"
+							data-options="url:'${ctx}/hxCode/getCombobox/sf'" /></td>
+					</tr>
+					<tr>
+						<td width="10%">是否启用</td>
+						<td width="25%"><input class="easyui-combobox"
+							name="wetEnable"
+							data-options="url:'${ctx}/hxCode/getCombobox/sf'" /></td>
+						<td width="10%">是否关联配件</td>
+						<td width="25%"><input class="easyui-combobox"
+							name="wetUnion"
+							data-options="url:'${ctx}/hxCode/getCombobox/sf'" /></td>
+						<td></td>
+						
+						<td width="40%" align="right"><a href="#" id="query"
+							class="easyui-linkbutton" iconCls="icon-search">查询</a></td>
+					</tr>
+				
+						
+					
+				</table>
+			</form>
+		</div>
+		<div id="toolbar" style="display: none;">
+			<a href="javascript:void(0);" class="easyui-linkbutton"
+				data-options="iconCls:'icon-add',plain:true"
+				onclick="importExcel();">故障代码导入</a> <a href="javascript:void(0);"
+				class="easyui-linkbutton"
+				data-options="iconCls:'icon-add',plain:true" onclick="back();">故障维修分类</a>
+			<a href="javascript:void(0);" class="easyui-linkbutton"
+				data-options="iconCls:'icon-excel',plain:true"
+				onclick="exportExcel();">导出</a>
+		</div>
+		<div data-options="region:'center',border:false">
+			<table id="dataGrid"></table>
+		</div>
+	</div>
+</body>
+</html>

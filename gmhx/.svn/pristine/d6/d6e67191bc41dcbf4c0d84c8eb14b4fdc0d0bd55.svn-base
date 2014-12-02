@@ -1,0 +1,14 @@
+package com.gome.gmhx.controller.materialmanage;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping(value="/hxMaterialHistory")
+public class HxMaterialHistoryController {
+
+	@RequestMapping(value="/hxMaterialHistoryView")
+	private String ParcelDeliveryView(){
+		return "materialmanage/hxMaterialHistory/hxMaterialHistoryList";
+	}  
+}

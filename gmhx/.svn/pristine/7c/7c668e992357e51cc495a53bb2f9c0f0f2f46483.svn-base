@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gome.gmhx.dao.basicdata.HxCodeDao">
+	<resultMap id="hxCodeResult" type="com.gome.gmhx.entity.HxCode">
+		<result property="codeId" column="code_id" jdbcType="VARCHAR"/>
+		<result property="codeName" column="code_name" jdbcType="VARCHAR"/>
+		<result property="codeKey" column="code_key" jdbcType="VARCHAR"/>
+		<result property="codeValue" column="code_value" jdbcType="VARCHAR"/>
+	</resultMap>
+	<select id="getAll" resultMap="hxCodeResult">
+		SELECT * FROM v_code
+	</select>
+	
+	<select id="getCodeByKey" resultMap="hxCodeResult" parameterType="string">
+		SELECT * FROM v_code where code_id=#{codeKey}
+	</select>
+	
+	<select id="getHxCodePageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
+		SELECT code_id codeId, code_name codeName FROM hx_code where editable = 1
+	</select>
+	
+	<select id="getHxCodeSettingByCodeId" parameterType="string" resultType="hashmap">
+		SELECT code_id codeId, code_key codeKey, code_value codeValue from hx_code_setting where code_id=#{codeId} order by code_key
+	</select>
+	
+	<select id="getOrgCombobox" resultType="hashmap">
+		select id, name from hx_organization_unload
+	</select>
+	
+	<select id="getFittingMenu" parameterType="string" resultType="hashmap">
+		select t.fitting_auth_id id, t1.fitting_auth_name name
+		from hx_position_fitting t, hx_fitting_auth t1
+		where t.fitting_auth_id=t1.fitting_auth_id and t.position_id=#{positionId}
+	</select>
+	
+	<insert id="insertSetting" parameterType="com.gome.gmhx.entity.HxCode">
+		insert into hx_code_setting values(#{codeId},#{codeKey},#{codeValue})
+	</insert>
+	
+	<select id="getFbOrgCombobox" resultType="hashmap">
+		select org_id as id, org_name as name from hx_organization where is_fitting_stock='1'
+	</select>
+	
+	<select id="getWdOrgCombobox" resultType="hashmap">
+		select org_id as id, org_name as name from hx_organization where fitting_pid is not null
+	</select>
+	
+	<select id="getZbOrgCombobox" resultType="hashmap">
+		select org_id as id, org_name as name from hx_organization where org_id = 'ZGS'
+	</select>
+	
+	<select id="getPositions" resultType="hashmap" parameterType="string">
+		select t.sysPositionId as id,t.sysPositionName as name from (
+		select distinct(t.ap_account) userAccount,0 positionType,left(t1.positioncode,length(t1.positioncode)-10) companyId,
+		(select name from hx_organization_unload where id=left(t1.positioncode,length(t1.positioncode)-10)) companyName,
+		t1.positioncode sysPositionId,t1.positionname sysPositionName
+    	from emp_account t left join emp_empposition t1
+    	ON t.empno=t1.empno where t.ap_account=#{userAccount}
+		union all 
+		select t.user_login_name userAccount,t2.position_type as positionType, t.user_org_id companyId,
+    	(SELECT name FROM hx_organization_unload WHERE id=t.user_org_id) companyName, t1.position_id sysPositionId,
+    	t2.position_name sysPositionName
+    	from hx_user t left join hx_user_position t1 on t.user_login_name = t1.user_login_name and t1.from_type=3
+    	LEFT JOIN hx_position t2 ON t1.position_id=t2.position_id where t.user_login_name=#{userAccount}
+		union all 
+		SELECT t.CZY01 userAccount, t2.position_type as positionType,t.GSXX01 companyId,
+  		(SELECT name FROM hx_organization_unload WHERE id=AZWD01) companyName,
+  		t1.position_id sysPositionId,t2.position_name sysPositionName
+		FROM jl_account t LEFT JOIN hx_user_position t1 ON t1.from_type=2 AND t.CZY01=t1.user_login_name
+		LEFT JOIN hx_position t2 ON t1.position_id=t2.position_id where t.CZY01=#{userAccount}) t where t.positionType = '0'
+	</select>
+</mapper>

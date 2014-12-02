@@ -1,0 +1,213 @@
+package com.gome.gmhx.controller.sysconfig;
+
+import java.net.URLDecoder;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.gome.common.bean.ViewExcel;
+import com.gome.common.page.Page;
+import com.gome.common.util.DateUtils;
+import com.gome.common.util.DecoderUtil;
+import com.gome.common.util.JsonUtil;
+import com.gome.common.util.UUIDGenerator;
+import com.gome.gmhx.entity.HxOrganization;
+import com.gome.gmhx.service.sysconfig.HxOrganizationService;
+
+@Controller
+@RequestMapping(value="/hxOrganization")
+public class HxOrganizationController {
+	@Resource
+	private HxOrganizationService hxOrganizationService;
+	
+	@RequestMapping(value="/organizationView")
+	public String organizationView(){
+		return "sysconfig/hxOrganization/organizationList";
+	}
+	
+	@RequestMapping(value="/organizationTree")
+	public String organizationTree(){
+		return "sysconfig/hxOrganization/organizationTree";
+	}
+	
+	@RequestMapping(value="/getOrganizationPageList", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getOrganizationList(HttpServletResponse response, Page page, HxOrganization organization) throws Exception{
+		page.setParam(organization);
+		List<Map<String, Object>> list = hxOrganizationService.getOrganizationPageList(page);
+		return JsonUtil.writeListToDataGrid(page.getTotalResult(), list);
+	}
+	
+	@RequestMapping(value="/addView/{pageMarkup}")
+	public ModelAndView addView(@PathVariable(value = "pageMarkup") String pageMarkup){
+		ModelAndView mav = new ModelAndView("sysconfig/hxOrganization/organizationAdd");
+		HxOrganization organization =new HxOrganization();
+		organization.setPageMarkup(pageMarkup);
+		mav.addObject("organization", organization);
+		return mav;
+	}
+	
+	@RequestMapping(value="addOrganization")
+	@ResponseBody
+	public String addOrganization(HxOrganization organization) {
+        try {
+        	String orgId = UUIDGenerator.getUUID();
+        	organization.setOrgId(orgId);//设置主键
+        	organization.setOrgCreateDate(new Date());//设置创建日期
+        	organization.setOrgActive(true);//机构状态标记（可用）
+        	organization.setOrgSource("0");//系统内部
+        	hxOrganizationService.addOrganization(organization);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+	
+	@RequestMapping(value="/updateView/{orgId}/{pageMarkup}")
+	public ModelAndView updateView(@PathVariable(value = "orgId") String orgId,@PathVariable(value = "pageMarkup") String pageMarkup){
+		ModelAndView mav = new ModelAndView("sysconfig/hxOrganization/organizationUpdate");
+		HxOrganization organization = hxOrganizationService.getOrganizationById(orgId);
+		organization.setPageMarkup(pageMarkup);
+		mav.addObject("organization", organization);
+		return mav;
+	}
+	
+	@RequestMapping(value="/updateOrganization")
+	@ResponseBody
+	public String updateOrganization(HxOrganization organization){
+		try {
+			organization.setOrgUpdateDate(new Date());//设置修改日期
+			String fromType = organization.getFromType();
+			String orgId = organization.getOrgId();
+			if("hx001".equals(fromType)){
+				hxOrganizationService.updateOrganization(organization);
+			}else{
+				hxOrganizationService.delOrganizationById(orgId);
+				organization.setOrgSource("1");//外围系统
+				hxOrganizationService.addOrganization(organization);
+			}
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	@RequestMapping(value="/showView/{orgId}/{pageMarkup}")
+	public ModelAndView showView(@PathVariable(value = "orgId") String orgId,@PathVariable(value = "pageMarkup") String pageMarkup,HttpServletRequest request){
+		ModelAndView mav = new ModelAndView("sysconfig/hxOrganization/organizationShow");
+		HxOrganization organization = hxOrganizationService.getOrganizationById(orgId);
+		organization.setPageMarkup(pageMarkup);
+		mav.addObject("organization", organization);
+		return mav;
+	}
+	
+	@RequestMapping(value="/logout/{orgId}/{pageMarkup}")
+	public ModelAndView logout(@PathVariable(value = "orgId") String orgId,@PathVariable(value = "pageMarkup") String pageMarkup){
+		ModelAndView mav = new ModelAndView("sysconfig/hxOrganization/organizationShow");
+		HxOrganization organization = hxOrganizationService.getOrganizationById(orgId);
+		organization.setOrgActive(false);//注销
+		organization.setOrgActiveName("停用");
+		hxOrganizationService.updateOrganization(organization);
+		organization.setPageMarkup(pageMarkup);
+		mav.addObject("organization", organization);
+		return mav;
+	}
+	
+	@RequestMapping(value="/logon/{orgId}/{pageMarkup}")
+	public ModelAndView logon(@PathVariable(value = "orgId") String orgId,@PathVariable(value = "pageMarkup") String pageMarkup){
+		ModelAndView mav = new ModelAndView("sysconfig/hxOrganization/organizationShow");
+		HxOrganization organization = hxOrganizationService.getOrganizationById(orgId);
+		organization.setOrgActive(true);//启用
+		organization.setOrgActiveName("正常使用");
+		hxOrganizationService.updateOrganization(organization);
+		organization.setPageMarkup(pageMarkup);
+		mav.addObject("organization", organization);
+		return mav;
+	}
+	
+	@RequestMapping(value="/moveView/{orgId}/{pageMarkup}")
+	public ModelAndView moveView(@PathVariable(value = "orgId") String orgId,@PathVariable(value = "pageMarkup") String pageMarkup){
+		ModelAndView mav = new ModelAndView("sysconfig/hxOrganization/organizationMove");
+		HxOrganization organization = hxOrganizationService.getOrganizationById(orgId);
+		organization.setPageMarkup(pageMarkup);
+		mav.addObject("organization", organization);
+		return mav;
+	}
+	
+	@RequestMapping(value="/move")
+	@ResponseBody
+	public String move(HxOrganization organization){
+		try {
+			HxOrganization organizationTemp = hxOrganizationService.getOrganizationById(organization.getOrgId());
+			organizationTemp.setOrgParentId(organization.getOrgParentId());;//设置修改日期
+			hxOrganizationService.updateOrganization(organizationTemp);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	@RequestMapping(value="/combineView/{orgId}/{pageMarkup}")
+	public ModelAndView combineView(@PathVariable(value = "orgId") String orgId,@PathVariable(value = "pageMarkup") String pageMarkup){
+		ModelAndView mav = new ModelAndView("sysconfig/hxOrganization/organizationCombine");
+		HxOrganization organization = hxOrganizationService.getOrganizationById(orgId);
+		organization.setPageMarkup(pageMarkup);
+		mav.addObject("organization", organization);
+		return mav;
+	}
+	
+	@RequestMapping(value="/combine")
+	@ResponseBody
+	public String combine(HxOrganization organization){
+		try {
+			HxOrganization organizationTemp = hxOrganizationService.getOrganizationById(organization.getOrgId());
+			organizationTemp.setOrgParentId(organization.getOrgParentId());;//设置修改日期
+			hxOrganizationService.updateOrganization(organizationTemp);
+            return "{\"flag\" : \"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	@RequestMapping(value="/exportExcel")
+	public ModelAndView exportExcel(HxOrganization organization, String tableField, String tableHeader, HttpServletRequest request, HttpServletResponse response) throws Exception{
+		new DecoderUtil<HxOrganization>().decodeURI(organization);
+		String header = URLDecoder.decode(tableHeader, "UTF-8");
+		List<Map<String, Object>> list = hxOrganizationService.getOrganizationExport(organization);
+		ViewExcel viewExcel = new ViewExcel("组织机构导出" + DateUtils.formatDateTime(new Date(), DateUtils.FORMAT_THREE), tableField, header, list);
+		return new ModelAndView(viewExcel);
+	}
+	
+	@RequestMapping(value="/getOrganizationTree", produces="text/plain;charset=utf-8")
+	@ResponseBody
+	public String getOrganizationTree(){
+		List<HxOrganization> organizationList = hxOrganizationService.getOrganizationTree();
+        JSONArray array = new JSONArray();
+        for (HxOrganization organization : organizationList) {
+            JSONObject object = new JSONObject();
+            object.put("id", organization.getOrgId());
+            object.put("pId", organization.getOrgParentId());
+            object.put("name", organization.getOrgName());
+            object.put("fromType", organization.getFromType());
+            array.add(object);
+        }
+		return array.toString();
+	}
+}
