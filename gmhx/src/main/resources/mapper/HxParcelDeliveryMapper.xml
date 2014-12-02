@@ -29,10 +29,6 @@
 	    <result column="send_unit" jdbcType="VARCHAR" property="sendUnit" />
 	    <result column="receive_date" jdbcType="TIMESTAMP" property="receiveDate" />
 	    <result column="type" jdbcType="VARCHAR" property="type" />
-	    <result column="fitting_code" jdbcType="VARCHAR" property="fittingCode" />
-	    <result column="fitting_name" jdbcType="VARCHAR" property="fittingName" />
-	    <result column="norms" jdbcType="VARCHAR" property="norms" />
-	    <result column="number" jdbcType="VARCHAR" property="number" />
    		<result column="fitting_position_id" jdbcType="VARCHAR" property="fittingPositionId" />
 	</resultMap>
 	<resultMap id="currentStockMap" type="com.gome.gmhx.entity.HxCurrentStock">
@@ -48,17 +44,10 @@
 	    parcel_code, org_id, bills_code, receive_unit, carrier_unit, 
 	    state, update_date, send_date, delivery_way, trantransportation_expenses, package_number, 
 	    package_weight, package_volume, volume_weight, receive_name, receive_phone, receive_post, 
-	    receive_address, note, founders, founder_date, modefieds, modefied_date, `
-	    out_date, send_unit, receive_date, type, fitting_code, fitting_name, 
-	    norms, number,fitting_position_id
+	    receive_address, note, founders, founder_date, modefieds, modefied_date,
+	    out_date, send_unit, receive_date, type,fitting_position_id
   	</sql>
   
-	<select id="getOrgnazationBySuit" resultType="string"
-		parameterType="string">
-		select org_manager, org_reference,
-		org_post_code,org_address from hx_organization where org_id =
-		#{receiveUnit,jdbcType=VARCHAR}
-	</select>
 	<select id="getaddHxParcelDelivery" resultMap="BaseResultMap"
 		parameterType="java.lang.String">
 		SELECT t.receive_unit,
@@ -87,7 +76,7 @@
 		DATE_FORMAT(founder_date, 'm-%d-%Y') = DATE_FORMAT(now(), 'm-%d-%Y')
 	</select>
 
-	<select id="getApplayCodeList" parameterType="com.gome.common.page.Page" resultType="hashmap">
+	<select id="getMaterialByReceiveUnitPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
 		SELECT
 			hx_material_detail.fitting_code,
 			c.code_value AS type,
@@ -96,21 +85,15 @@
 			hx_material_manage.update_time,
 			hx_material_detail.audit_count,
 			hx_material_manage.send_number,
-			hx_fitting_detail.fitting_code,
 			hx_fitting_detail.fitting_name,
 			hx_fitting_detail.spec
 		FROM
 			hx_material_manage
 		INNER JOIN hx_material_detail ON hx_material_manage.list_number = hx_material_detail.list_number
-		AND hx_material_manage.list_number IN (
-			SELECT
-				m.list_number
-			FROM
-				hx_material_manage m
-			WHERE
-				receive_company = #{param.receiveUnit}
-			AND m. STATUS = 'S7'
-		)
+			AND hx_material_manage.receive_company = #{param.receiveUnit} and hx_material_manage.STATUS = 'S7'
+			AND hx_material_manage.list_number IN (
+					${param.list}
+				)
 		INNER JOIN hx_fitting_detail ON hx_material_detail.fitting_code = hx_fitting_detail.fitting_code
 		INNER JOIN v_code c ON c.code_id = 'fitting_type'
 		AND c.code_key = hx_material_manage.type
@@ -118,6 +101,7 @@
 	<select id="getParcelDeliveryPageList" parameterType="com.gome.common.page.Page"
 		resultType="hashmap">
 		SELECT
+			DISTINCT
 			t.parcel_code,
 			t.bills_code,
 			t.carrier_unit,
@@ -125,19 +109,23 @@
 			t.update_date,
 			v. NAME receive_unit,
 			t.state status_hidden,
-			pm.list_number,
 			v1.code_value state1
 		FROM
 			hx_parcel_delivery t
 		LEFT JOIN hx_organization_unload v ON v.id IS NOT NULL AND v.id = t.receive_unit
 		LEFT JOIN hx_organization_unload v2 ON v2.id IS NOT NULL AND v2.id = t.send_unit
-		LEFT JOIN v_code v1
-		on v1.code_id='ybzt' and v1.code_key = t.state
-		RIGHT JOIN hx_parcel_material pm ON pm.parcel_code = t.parcel_code
+		LEFT JOIN v_code v1 on v1.code_id='ybzt' and v1.code_key = t.state
+		JOIN hx_parcel_material pm ON pm.parcel_code = t.parcel_code
 		AND list_number IN (
 					${param.list}
 				)
- 		where t.state in ('01', '02')
+ 		where t.state ='01'
+		<if test="param.fittingPositionId != null">
+			and t.fitting_position_id =#{param.fittingPositionId}
+		</if>
+		<if test="param.founders != null">
+			and t.founders = #{param.founders}
+		</if>
 		<if test="param.parcelCode != null">
 			and t.parcel_code like CONCAT('%',#{param.parcelCode},'%')
 		</if>
@@ -150,20 +138,11 @@
 		<if test="param.carrierUnit != null">
 			and t.carrier_unit like CONCAT('%',#{param.carrierUnit},'%')
 		</if>
-		<if test="param.state != null">
-			and t.state like CONCAT('%',#{param.state},'%')
-		</if>
 		<if test="param.updateDate_sta !=null and param.updateDate_sta != '' ">
 		   <![CDATA[ and t.update_date >=#{param.updateDate_sta} ]]>
 		</if>
 		<if test="param.updateDate_end !=null and param.updateDate_end != '' ">
 		   <![CDATA[ and t.update_date <=#{param.updateDate_end} ]]>
-		</if>
-		<if test="param.fittingPositionId != null">
-			and t.fitting_position_id =#{param.fittingPositionId}
-		</if>
-		<if test="param.founders != null">
-			and t.founders = #{param.founders}
 		</if>
 	</select>
 
@@ -189,21 +168,18 @@
 			t.modefied_date,
 			t.modefieds,
 			t.founders,
-			o.org_reference AS receive_name,
-			o.org_post_code AS receive_post,
-			o.org_address AS receive_address,
-			o.org_telephone AS receive_phone,
-		  o.org_code
+			t.receive_name,
+			t.receive_post,
+			t.receive_address,
+			t.receive_phone
 		FROM
 			hx_parcel_delivery t
-		JOIN hx_organization o ON t.org_id = o.org_code
 		INNER JOIN hx_organization_unload v ON v.id IS NOT NULL
 		INNER JOIN hx_organization_unload v3 ON v3.id IS NOT NULL
 		
 		AND v.id = t.receive_unit
 		AND v3.id = t.send_unit
-		LEFT JOIN v_code v1 ON v1.code_id = 'ybzt'
-		AND v1.code_key = t.state
+		LEFT JOIN v_code v1 ON v1.code_id = 'ybzt' AND v1.code_key = t.state
 		where t.parcel_code=#{parcelCode,jdbcType=VARCHAR}
 	</select>
 
@@ -220,19 +196,20 @@
 	</select>
 
 	<insert id="addHxParcelDelivery" parameterType="com.gome.gmhx.entity.HxParcelDelivery">
-		insert into hx_parcel_delivery (parcel_code,org_id,bills_code,delivery_way,
-		trantransportation_expenses, note,package_weight,
-		volume_weight,send_date,carrier_unit,
-		package_number,package_volume ,
-		founder_date,receive_unit,state,type,update_date,send_unit,modefieds,founders,fitting_position_id)
-		values (#{parcelCode,jdbcType=VARCHAR},#{orgId,jdbcType=VARCHAR}
-		,#{billsCode,jdbcType=VARCHAR}, #{deliveryWay,jdbcType=VARCHAR},
-		#{trantransportationExpenses,jdbcType=VARCHAR},
-		#{note,jdbcType=VARCHAR},#{packageWeight,jdbcType=VARCHAR},
-		#{volumeWeight,jdbcType=VARCHAR},#{sendDate,jdbcType=TIMESTAMP},#{carrierUnit,jdbcType=VARCHAR},
-		#{packageNumber,jdbcType=VARCHAR},#{packageVolume,jdbcType=VARCHAR},now(),
-		#{receiveUnit,jdbcType=VARCHAR},'01',#{type,jdbcType=VARCHAR},#{updateDate,jdbcType=VARCHAR},#{sendUnit,jdbcType=VARCHAR},
-		#{modefieds,jdbcType=VARCHAR},#{founders,jdbcType=VARCHAR},
+		insert into hx_parcel_delivery (<include refid="Base_Column_List"/>)
+		values (
+		#{parcelCode,jdbcType=VARCHAR},#{orgId,jdbcType=VARCHAR},
+		#{billsCode,jdbcType=VARCHAR}, #{receiveUnit,jdbcType=VARCHAR},
+		#{carrierUnit,jdbcType=VARCHAR},'01',#{updateDate,jdbcType=VARCHAR},#{sendDate,jdbcType=TIMESTAMP},
+		#{deliveryWay,jdbcType=VARCHAR},#{trantransportationExpenses,jdbcType=VARCHAR},
+		#{packageNumber,jdbcType=VARCHAR},#{packageWeight,jdbcType=VARCHAR},#{packageVolume,jdbcType=VARCHAR},
+		#{volumeWeight,jdbcType=VARCHAR},#{receiveName,jdbcType=VARCHAR},#{receivePhone,jdbcType=VARCHAR},
+		#{receivePost,jdbcType=VARCHAR},#{receiveAddress,jdbcType=VARCHAR},
+		#{note,jdbcType=VARCHAR},
+		#{founders,jdbcType=VARCHAR},#{founderDate,jdbcType=TIMESTAMP},
+		#{modefieds,jdbcType=VARCHAR},#{modefiedDate,jdbcType=TIMESTAMP},
+		#{outDate,jdbcType=TIMESTAMP},#{sendUnit,jdbcType=VARCHAR},
+		#{receiveDate,jdbcType=TIMESTAMP},#{type,jdbcType=VARCHAR},
 		#{fittingPositionId,jdbcType=VARCHAR})
 	</insert>
 
@@ -248,11 +225,15 @@
 		receive_date = #{receiveDate,jdbcType=TIMESTAMP},
 		carrier_unit = #{carrierUnit,jdbcType=VARCHAR},
 		trantransportation_expenses = #{trantransportationExpenses,jdbcType=VARCHAR},
-		founder_date = #{founderDate,jdbcType=TIMESTAMP},
 		package_weight = #{packageWeight,jdbcType=VARCHAR},
 		package_number = #{packageNumber,jdbcType=VARCHAR},
 		volume_weight = #{volumeWeight,jdbcType=VARCHAR},
+		receive_name = #{receiveName,jdbcType=VARCHAR},
+		receive_phone = #{receivePhone,jdbcType=VARCHAR},
+		receive_post = #{receivePost,jdbcType=VARCHAR},
+		receive_address = #{receiveAddress,jdbcType=VARCHAR},
 		note = #{note,jdbcType=VARCHAR},
+		modefieds=#{modefieds,jdbcType=VARCHAR},
 		modefied_date = #{modefiedDate,jdbcType=TIMESTAMP},
 		package_volume = #{packageVolume,jdbcType=VARCHAR},
 		state = #{state,jdbcType=VARCHAR},
@@ -269,19 +250,6 @@
 	<delete id="deleteMaterialsByCode" parameterType="string" >
 		delete from hx_parcel_material where parcel_code = #{parcelCode}
 	</delete>
-	<!-- 修改邮包状态等 -->
-	<update id="updatesendParcelDelivery" parameterType="hashmap">
-		update hx_parcel_delivery set state='02',receive_date=now() where
-		parcel_code=#{parcelCode,jdbcType=VARCHAR};
-	</update>
-	<!-- 修改库存 -->
-	<update id="updateHxCurrentStock" parameterType="hashmap">
-		update hx_current_stock set stock=stock -
-		#{packageNumber,jdbcType=VARCHAR},count_way=count_way-#{packageNumber,jdbcType=VARCHAR}
-		where org_id=#{receiveUnit,jdbcType=VARCHAR}
-		<!-- and type=#{param.type}; 总部,分部,网点 -->
-	</update>
-
 
 	<!-- 发送完后，显示所有数据 -->
 	<select id="getsendParcelDeliveryShow" resultMap="BaseResultMap"
@@ -435,18 +403,6 @@
       </if>
       <if test="type != null">
         type = #{type,jdbcType=VARCHAR},
-      </if>
-      <if test="fittingCode != null">
-        fitting_code = #{fittingCode,jdbcType=VARCHAR},
-      </if>
-      <if test="fittingName != null">
-        fitting_name = #{fittingName,jdbcType=VARCHAR},
-      </if>
-      <if test="norms != null">
-        norms = #{norms,jdbcType=VARCHAR},
-      </if>
-      <if test="number != null">
-        number = #{number,jdbcType=VARCHAR},
       </if>
     </set>
     where parcel_code = #{parcelCode,jdbcType=VARCHAR}

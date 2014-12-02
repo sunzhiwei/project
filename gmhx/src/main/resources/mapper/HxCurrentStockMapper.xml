@@ -14,7 +14,7 @@
   </sql>
 	
   <select id="getHxCurrentStockPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
-		SELECT
+		SELECT DISTINCT
 			org.org_name AS orgName,
 			stock.fitting_code AS fittingCode,
 			detail.fitting_name AS fittingName,
@@ -39,13 +39,11 @@
 					detail.branch_price * stock.stock
 				WHEN stock.type = 2 THEN
 					detail.network_price * stock.stock
-				END),0) totalPrice,
-			model.suit_model AS suitModel
+				END),0) totalPrice
 		FROM
 			hx_current_stock stock
 		LEFT JOIN hx_fitting_detail detail ON stock.fitting_code = detail.fitting_code
 		LEFT JOIN hx_organization org ON stock.org_id = org.org_code
-		LEFT JOIN hx_fitting_model model ON detail.fitting_code = model.fitting_code
 		WHERE 1=1 
 		<if test="param.specifiedType != null">
 			AND stock.type = #{param.specifiedType,jdbcType=VARCHAR}
@@ -55,7 +53,7 @@
 	   	<if test="param.partsCode!= null and param.partsCode!= '' ">
 	   		AND detail.parts_code like  CONCAT('%',#{param.partsCode, jdbcType=VARCHAR},'%')</if>
 	   	<if test="param.suitModel!= null and param.suitModel!= '' ">
-	   		AND modelsuit_model like CONCAT('%', #{param.suitModel, jdbcType=FLOAT}, '%')</if>
+	   		AND model.suit_model like CONCAT('%', #{param.suitModel, jdbcType=FLOAT}, '%')</if>
    		<if test="param.fittingCode!= null and param.fittingCode!= '' ">
 	   		AND stock.fitting_code like CONCAT('%', #{param.fittingCode, jdbcType=FLOAT}, '%')</if>
 	   	<if test="param.fittingName!= null and param.fittingName!= '' ">

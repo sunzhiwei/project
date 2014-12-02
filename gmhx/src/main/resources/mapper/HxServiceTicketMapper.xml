@@ -383,11 +383,18 @@
   </select>
   
   <select id="getOverproofSettlementTicket" parameterType="com.gome.gmhx.entity.HxExamineSettlementTicket" resultType="com.gome.gmhx.entity.HxSettlementDetail">
-	SELECT * from hx_material_manage
-	WHERE 1=1
-	<if test="serviceUnit != null and serviceUnit !=''">and T.service_unit like CONCAT('%',#{serviceUnit},'%')</if>
-	<if test="settlementTime !=null and settlementTime != '' ">and EXTRACT(YEAR_MONTH FROM T.create_time_s)=EXTRACT(YEAR_MONTH FROM #{settlementTime,jdbcType=TIMESTAMP})</if>   
-	GROUP BY T.service_id
+	SELECT 
+	T.list_number serviceId,	
+	M.sumPrice serviceFee,
+	M.sumPrice settlementFee,
+	T.send_company serviceUnit
+	FROM hx_material_manage T
+	LEFT JOIN (SELECT list_number, GROUP_CONCAT(fitting_code SEPARATOR '、') fitting_code,apply_count,price,
+	SUM(IFNULL(apply_count,0)*IFNULL(price,0)) sumPrice FROM hx_material_detail
+	GROUP BY list_number) M ON M.list_number = T.list_number
+	WHERE T.send_company = 'bjdzwd'
+	AND EXTRACT(YEAR_MONTH FROM T.create_time)=EXTRACT(YEAR_MONTH FROM #{settlementTime,jdbcType=TIMESTAMP})
+	GROUP BY T.list_number
   </select>
   
   <delete id="deleteServiceTicketByPrimaryKey" parameterType="java.lang.String" >

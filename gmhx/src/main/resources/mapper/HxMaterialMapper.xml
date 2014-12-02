@@ -7,7 +7,7 @@
 	    <result column="receive_company" property="receiveCompany" jdbcType="VARCHAR" />
 	    <result column="list_number" property="listNumber" jdbcType="VARCHAR" />
 	    <result column="proposer" property="proposer" jdbcType="VARCHAR" />
-	    <result column="apply_date" property="applyDate" jdbcType="DATE" />
+	    <result column="apply_date" property="applyDate" jdbcType="TIMESTAMP" />
 	    <result column="comment" property="comment" jdbcType="VARCHAR" />
 	    <result column="customer_name" property="customerName" jdbcType="VARCHAR" />
 	    <result column="customer_tel" property="customerTel" jdbcType="VARCHAR" />
@@ -212,19 +212,19 @@
 	
 	<!-- 邮包收发货历史 -->      
 	<select id="getHxParcelPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
-		SELECT a.org_id, a.parcel_code, a.bills_code, a.carrier_unit, a.state,a.update_date, 
+		SELECT DISTINCT
+		 a.org_id, a.parcel_code, a.bills_code, a.carrier_unit, a.state,a.update_date, 
 		    a.send_date, a.delivery_way, a.trantransportation_expenses, a.package_number, a.package_weight, 
 		    a.package_volume, a.volume_weight, a.receive_name, a.receive_phone, a.receive_post, a.receive_address, 
 		    a.note, a.founders, a.founder_date, a.modefieds, a.modefied_date, a.send_number, 
-		    a.out_date, a.receive_date, a.type, a.fitting_code, a.fitting_name, a.norms, 
-		    a.number,
+		    a.out_date, a.receive_date, a.type,
 		    v.name receive_unit, 
 		    v2.name send_unit
 		FROM
 			hx_parcel_delivery a 
 			LEFT JOIN hx_organization_unload v ON v.id IS NOT NULL AND v.id = a.receive_unit
 			LEFT JOIN hx_organization_unload v2 ON v2.id IS NOT NULL AND v2.id = a.send_unit
-			RIGHT JOIN hx_parcel_material pm ON pm.parcel_code = a.parcel_code
+			JOIN hx_parcel_material pm ON pm.parcel_code = a.parcel_code
 			AND pm.list_number IN (
 				SELECT
 					t.work_entity_id
@@ -233,24 +233,24 @@
 				WHERE
 					t.current_activity IN ('S7', 'S8')
 			)
-		WHERE a.founders = #{param.founders}
-		AND a.state IN ('01', '02')
-		AND a.fitting_position_id = #{param.fittingPositionId}
+		WHERE (((a.state ='02' or a.state='03') and a.send_unit= #{param.fittingOrgId})
+			 OR
+		 	(a.state ='03' and a.receive_unit= #{param.fittingOrgId}))
 
 		<if test="param.parcelCode!= null and param.parcelCode!= '' ">
-		   and parcel_code like CONCAT('%',#{param.parcelCode},'%')</if>
+		   and a.parcel_code like CONCAT('%',#{param.parcelCode},'%')</if>
 	    <if test="param.billsCode!= null and param.billsCode!= '' ">
-		   and bills_code like CONCAT('%',#{param.billsCode},'%')</if>
+		   and a.bills_code like CONCAT('%',#{param.billsCode},'%')</if>
         <if test="param.sendUnit!= null and param.sendUnit!= '' ">
-		   and send_unit like CONCAT('%',#{param.sendUnit},'%')</if>
+		   and a.send_unit like CONCAT('%',#{param.sendUnit},'%')</if>
 	    <if test="param.receiveUnit!= null and param.receiveUnit!= '' ">
-		   and receive_unit like CONCAT('%',#{param.receiveUnit},'%')</if>
+		   and a.receive_unit like CONCAT('%',#{param.receiveUnit},'%')</if>
 		<if test="param.carrierUnit!= null and param.carrierUnit!= '' ">
-		   and carrier_unit like CONCAT('%',#{param.carrierUnit},'%')</if>
+		   and a.carrier_unit like CONCAT('%',#{param.carrierUnit},'%')</if>
 		<if test="param.sendDate_sta !=null and param.sendDate_sta != '' ">
-		   <![CDATA[ and send_date >=#{param.sendDate_sta} ]]>   </if>        
+		   <![CDATA[ and a.send_date >=#{param.sendDate_sta} ]]>   </if>        
 		<if test="param.sendDate_end !=null and param.sendDate_end != '' ">
-		   <![CDATA[ and send_date <=#{param.sendDate_end} ]]>   </if>
+		   <![CDATA[ and a.send_date <=#{param.sendDate_end} ]]>   </if>
 		ORDER BY a.update_date DESC    
 	</select> 
 	
@@ -267,7 +267,7 @@
 	      update_time,process_instance_id,applicant,fitting_position_id,move_direction,related_list_number)
 	    values (#{type,jdbcType=VARCHAR}, #{sendCompany,jdbcType=VARCHAR}, 
 	      #{receiveCompany,jdbcType=VARCHAR}, #{listNumber,jdbcType=VARCHAR}, #{proposer,jdbcType=VARCHAR}, 
-	      #{applyDate,jdbcType=DATE}, #{comment,jdbcType=VARCHAR}, #{customerName,jdbcType=VARCHAR}, 
+	      #{applyDate,jdbcType=TIMESTAMP}, #{comment,jdbcType=VARCHAR}, #{customerName,jdbcType=VARCHAR}, 
 	      #{customerTel,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
 	      #{fittingOrgId,jdbcType=VARCHAR}, #{createPerson,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
 	      #{updatePerson,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP},
@@ -329,7 +329,7 @@
         proposer = #{proposer,jdbcType=VARCHAR},
       </if>
       <if test="applyDate != null" >
-        apply_date = #{applyDate,jdbcType=DATE},
+        apply_date = #{applyDate,jdbcType=TIMESTAMP},
       </if>
       <if test="comment != null" >
         comment = #{comment,jdbcType=VARCHAR},

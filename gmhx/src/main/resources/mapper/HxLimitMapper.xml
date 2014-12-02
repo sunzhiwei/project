@@ -142,7 +142,7 @@
 			<![CDATA[ and limit_operate_date <= #{param.jsrq}]]>
 		</if>
 		<if test="param.limitId != null and param.limitId != ''">
-			and limit_id = #{param.limitId} or limit_origin_id = #{param.limitId}
+			and (limit_id = #{param.limitId} or limit_origin_id = #{param.limitId})
 		</if>
 		order by limit_operate_date desc
   </select>

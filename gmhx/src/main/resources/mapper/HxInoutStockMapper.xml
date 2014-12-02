@@ -4,7 +4,7 @@
 
   <select id="getInoutSotckHistoryPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
 		SELECT
-			d.fitting_code,c.code_value AS type,m.list_number,m. COMMENT,m.update_time,
+			d.fitting_code,c.code_value AS type,m.list_number,m. COMMENT,m.update_time,m.create_person,
 		IF (
 			ISNULL(d.audit_count),
 			d.apply_count,
@@ -44,10 +44,67 @@
 	   		AND d.suit_model like CONCAT('%', #{param.suitModel}, '%')</if>
    		<if test="param.fittingCode!= null and param.fittingCode!= '' ">
 	   		AND d.fitting_code like CONCAT('%', #{param.fittingCode}, '%')</if>
-	   	<if test="param.fittingName!= null and param.fittingName!= '' ">
-	   		AND hx_fitting_detail.fitting_name like CONCAT('%', #{param.fittingName}, '%')</if>
 	   	<if test="param.fittingType != null and param.fittingType !=''">
 	   		AND hx_fitting_detail.fitting_type = #{param.fittingType}
+	   	</if>
+	   	<if test="param.ksrq != null and param.ksrq !=''">
+	   		 <![CDATA[ AND m.update_time > DATE( #{param.ksrq}) ]]>
+	   	</if>
+	   	<if test="param.jsrq != null and param.jsrq !=''">
+	   		<![CDATA[ AND m.update_time < DATE( #{param.jsrq}) ]]>
+	   	</if>
+	</select>
+	
+	<select id="getZbInStockHistoryPageList" parameterType="Page" resultType="hashmap">
+		SELECT
+			d.fitting_code,
+			c.code_value AS type,
+			m.list_number,
+			m. COMMENT,
+			m.update_time,
+		  m.create_person,
+		IF (
+			ISNULL(d.audit_count),
+			d.apply_count,
+			d.audit_count
+		) count,
+		 d.price,
+		 hx_fitting_detail.fitting_name,
+		 v.`name` send_company,
+		 v2.`name` receive_company
+		FROM
+			hx_material_manage m
+		INNER JOIN hx_material_detail d ON m.list_number = d.list_number
+		LEFT JOIN hx_organization_unload v ON v.id IS NOT NULL
+		AND v.id = m.send_company
+		LEFT JOIN hx_organization_unload v2 ON v2.id IS NOT NULL
+		AND v2.id = m.receive_company
+		INNER JOIN hx_fitting_detail ON hx_fitting_detail.fitting_code = d.fitting_code
+		INNER JOIN v_code c ON c.code_id = 'fitting_type'
+		AND c.code_key = m.type
+		WHERE m.type='zb-n-cg'
+		<if test="param.listNumber!= null and param.listNumber!= '' ">
+	   		AND m.list_number like  CONCAT('%',#{param.listNumber},'%')</if>
+	   	<if test="param.sendCompany!= null and param.sendCompany!= '' ">
+	   		AND m.send_company like  CONCAT('%',#{param.sendCompany},'%')</if>
+	   	<if test="param.receiveCompany!= null and param.receiveCompany!= '' ">
+	   		AND m.receive_company like  CONCAT('%',#{param.receiveCompany},'%')</if>
+	   	<if test="param.type!= null and param.type!= '' ">
+	   		AND m.type = #{param.type}</if>
+	   	<if test="param.partsCode!= null and param.partsCode!= '' ">
+	   		AND hx_fitting_detail.parts_code like  CONCAT('%',#{param.partsCode, jdbcType=VARCHAR},'%')</if>
+	   	<if test="param.suitModel!= null and param.suitModel!= '' ">
+	   		AND d.suit_model like CONCAT('%', #{param.suitModel}, '%')</if>
+   		<if test="param.fittingCode!= null and param.fittingCode!= '' ">
+	   		AND d.fitting_code like CONCAT('%', #{param.fittingCode}, '%')</if>
+	   	<if test="param.fittingType != null and param.fittingType !=''">
+	   		AND hx_fitting_detail.fitting_type = #{param.fittingType}
+	   	</if>
+	   		<if test="param.ksrq != null and param.ksrq !=''">
+	   		 <![CDATA[ AND m.update_time > DATE( #{param.ksrq}) ]]>
+	   	</if>
+	   	<if test="param.jsrq != null and param.jsrq !=''">
+	   		<![CDATA[ AND m.update_time < DATE( #{param.jsrq}) ]]>
 	   	</if>
 	</select>
 	

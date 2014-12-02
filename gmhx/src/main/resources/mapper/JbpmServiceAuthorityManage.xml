@@ -72,6 +72,8 @@
 		select service_unit,apply_id as id from hx_service_long_distance
 		union
 		select service_unit,apply_id as id from hx_service_retreat_replacement
+		union
+		select service_unit,settlement_id as id from hx_service_retreat_replacement
 		) t1 where t1.id = #{id} )
 		) t
 	</select>
