@@ -130,9 +130,26 @@
 		window.location.href="${ctx}/hxPosition/showView/"+ positionCode+"?fromType="+fromType;
 	}
 	
-	function importExcel() {
+	/* function importExcel() {
 		var positionOrigin = $("#positionOrigin").val();
 		window.location.href = "${ctx}/hxPosition/importView?origin="+positionOrigin;
+	} */
+	
+	function importExcel(){
+		parent.$.modalDialog({
+			title : '恒信岗位数据导入',
+			width : 400,
+			height :250,
+			closable : false,
+			href : '${ctx}/common/import/importData?templateName=position_hx&actionName=importHxPosition',
+			buttons : [ 
+			{
+				text : '关闭',
+				handler : function() {
+					parent.$.modalDialog.handler.dialog('close');
+				}
+			}]
+		});
 	}
 	
 	function exportExcel() {

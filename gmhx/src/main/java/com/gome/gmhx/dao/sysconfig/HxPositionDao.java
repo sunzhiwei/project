@@ -41,6 +41,8 @@ public interface HxPositionDao {
 	List<Map<String, Object>> getPositionExport(HxPosition hxPosition);
 
 	String getParentList(String id);
+	
+	String getCategoryParentList(String id);
 
 	void deletePositionRoleByPositionId(String positionCode);
 

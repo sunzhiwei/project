@@ -34,11 +34,13 @@ import com.gome.gmhx.entity.HxFittingModel;
 import com.gome.gmhx.entity.HxFree;
 import com.gome.gmhx.entity.HxGoodbill;
 import com.gome.gmhx.entity.HxMaintenance;
+import com.gome.gmhx.entity.HxPosition;
 import com.gome.gmhx.entity.HxPostage;
 import com.gome.gmhx.entity.HxProductDetail;
 import com.gome.gmhx.entity.HxRole;
 import com.gome.gmhx.entity.HxRoleMenu;
 import com.gome.gmhx.entity.HxSetupeFree;
+import com.gome.gmhx.entity.vo.HxRoleAuthorityVO;
 import com.gome.gmhx.service.common.ExcelImportService;
 @Service("excelImportService")
 public class ExcelImportServiceImpl implements ExcelImportService {
@@ -116,7 +118,9 @@ public class ExcelImportServiceImpl implements ExcelImportService {
 			"posHandlers", "posNote" };
     private String[] rolePropery={"roleId","roleName","roleDesc"};	
     private String[] roleMenuPropery={"roleId","roleCategoryId","fittingAuthId","menuId"};
-
+    private String[] positionPropery={"positionCode","positionName","roleId","orgId"};
+    private String[] roleAuthorityPropery={"roleId","roleName","roleDesc","menuId","fittingAuthId","categoryId"};
+    
 	@Override
 	public void importHxProductDetail(Workbook workbook) {
 		Sheet st= workbook.getSheetAt(0);
@@ -323,35 +327,60 @@ public class ExcelImportServiceImpl implements ExcelImportService {
 	@Override
 	public void importHxRoleAuthority(Workbook workbook) {
 		Sheet st= workbook.getSheetAt(0);
-		List<Object> hxRoleMenus = this.xSSFSheetToObjectList(st, new HxRoleMenu(), roleMenuPropery);
-		List<HxRoleMenu> roleCategoryList=new ArrayList<HxRoleMenu>();
-		List<HxRoleMenu> roleFittingAuthList=new ArrayList<HxRoleMenu>();
-		List<HxRoleMenu> roleMenuList=new ArrayList<HxRoleMenu>();
-		for(Object o:hxRoleMenus){
-			HxRoleMenu roleMenu=(HxRoleMenu) o;
-			if(roleMenu.getRoleId()!=null && !"".equals(roleMenu.getRoleId().trim())){
-				if(roleMenu.getRoleCategoryId()!=null && !"".equals(roleMenu.getRoleCategoryId().trim()))
-					roleCategoryList.add(roleMenu);
-				if(roleMenu.getFittingAuthId()!=null && !"".equals(roleMenu.getFittingAuthId().trim()))
-					roleFittingAuthList.add(roleMenu);
-				if(roleMenu.getMenuId()!=null && !"".equals(roleMenu.getMenuId().trim())){
-					String parentIds=hxPositionDao.getParentList(roleMenu.getMenuId());
+		List<Object> hxRoleAuthoritys = this.xSSFSheetToObjectList(st, new HxRoleAuthorityVO(), roleAuthorityPropery);
+		List<HxRoleAuthorityVO> roleFittingAuthList=new ArrayList<HxRoleAuthorityVO>();
+		List<HxRoleMenu> roleMenuList=new ArrayList<HxRoleMenu>();  // 父子菜单特殊处理
+		List<HxRoleMenu> roleCategoryList=new ArrayList<HxRoleMenu>(); // 父子菜单特殊处理
+		for(Object o:hxRoleAuthoritys){
+			HxRoleAuthorityVO roleAuthority=(HxRoleAuthorityVO) o;
+			if(roleAuthority.getRoleId()!=null && !"".equals(roleAuthority.getRoleId().trim())){
+				if(roleAuthority.getCategoryId()!=null && !"".equals(roleAuthority.getCategoryId().trim())){
+					String categoryPids=hxPositionDao.getCategoryParentList(roleAuthority.getCategoryId());
+					if(categoryPids!=null &&!"".equals(categoryPids.trim())){
+						String splits[]=categoryPids.split(",");
+						for(String categoryId:splits){
+							if(!"".equals(categoryId))
+								roleCategoryList.add(new HxRoleMenu(null,categoryId));
+						}
+					}
+				}
+				if(roleAuthority.getFittingAuthId()!=null && !"".equals(roleAuthority.getFittingAuthId().trim()))
+					roleFittingAuthList.add(roleAuthority);
+				if(roleAuthority.getMenuId()!=null && !"".equals(roleAuthority.getMenuId().trim())){
+					String parentIds=hxPositionDao.getParentList(roleAuthority.getMenuId());
 					if(parentIds!=null && !"".equals(parentIds.trim())){
 						String splits[]=parentIds.split(",");
 						for(String menuId:splits){
 							if(!"0".equals(menuId))
-								roleMenuList.add(new HxRoleMenu(menuId));
+								roleMenuList.add(new HxRoleMenu(menuId,null));
 						}
 					}
 				}
 			}
 		}
+        if(hxRoleAuthoritys.size()>0)
+        	this.sqlSessionTemplate.insert("com.gome.gmhx.dao.sysconfig.HxRoleDao.insertRoleBatch", hxRoleAuthoritys);
 		if(roleCategoryList.size()>0)
 			this.sqlSessionTemplate.insert("com.gome.gmhx.dao.sysconfig.HxRoleMenuDao.insertRoleCategoryBatch", roleCategoryList);
 		if(roleFittingAuthList.size()>0)
-			this.sqlSessionTemplate.insert("com.gome.gmhx.dao.sysconfig.HxRoleDao.insertRoleFittingAuthBatch", roleFittingAuthList);
+			this.sqlSessionTemplate.insert("com.gome.gmhx.dao.sysconfig.HxRoleMenuDao.insertRoleFittingAuthBatch", roleFittingAuthList);
 		if(roleMenuList.size()>0)
-			this.sqlSessionTemplate.insert("com.gome.gmhx.dao.sysconfig.HxRoleDao.insertRoleMenuBatch", roleMenuList);
+			this.sqlSessionTemplate.insert("com.gome.gmhx.dao.sysconfig.HxRoleMenuDao.insertRoleMenuBatch", roleMenuList);
+	}
+
+	@Override
+	public void importHxPosition(Workbook workbook) {
+		Sheet st = workbook.getSheetAt(0);
+		List<Map<String, String>> orgCombobox = hxCodeDao.getOrgCombobox();
+		List<Map<String, String>> roleCombobox = hxCodeDao.getRoleCombobox();
+		List<Object> hxPositions = this.xSSFSheetToObjectList(st, new HxPosition(), positionPropery);
+		for(Object o:hxPositions){
+			HxPosition position=(HxPosition) o;
+			for(Map<String,String> map:orgCombobox){
+				//position.setOrgId(map.get(arg0));
+			}
+		}
+        		
 	}
 
 	private List<Object> xSSFSheetToObjectList(Sheet sheet,Object src,String[] properies){
@@ -404,7 +433,7 @@ public class ExcelImportServiceImpl implements ExcelImportService {
 		}
 		return objList;
 	}
-
+	
 	@Override
 	public void importStocks(Workbook workbook) {
 		Sheet st= workbook.getSheetAt(0);

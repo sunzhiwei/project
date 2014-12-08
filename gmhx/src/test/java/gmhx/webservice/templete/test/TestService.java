@@ -30,7 +30,7 @@ public class TestService {
 		list.add(eccBrand);
         service.handleEccBrand(list);*/
         
-        Map<String, String> map_material=new HashMap<String,String>();
+       /* Map<String, String> map_material=new HashMap<String,String>();
 		String type_material="material/material.jsp";
 		map_material.put("MP01", "S3");
 		map_material.put("MP01", "S4");
@@ -38,6 +38,10 @@ public class TestService {
 		map_material.put("MP02", "S4");
 		JSPFORWARDMAP.put(map_material, type_material);
 		System.out.println(JSPFORWARDMAP.toString());
-		System.out.println(JSPFORWARDMAP.get(map_material));
+		System.out.println(JSPFORWARDMAP.get(map_material));*/
+		
+		String a=",11,11111";
+		String splits[]=a.split(",");
+		System.out.println(splits);
 	}
 }

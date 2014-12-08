@@ -1,6 +1,7 @@
 package com.gome.gmhx.service.sysconfig.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -10,6 +11,7 @@ import com.gome.gmhx.dao.sysconfig.HxRoleMenuDao;
 import com.gome.gmhx.entity.EccGoodsCategory;
 import com.gome.gmhx.entity.HxFittingAuth;
 import com.gome.gmhx.entity.HxMenu;
+import com.gome.gmhx.entity.HxRole;
 import com.gome.gmhx.entity.HxRoleMenu;
 import com.gome.gmhx.service.sysconfig.RoleMenuService;
 
@@ -76,6 +78,11 @@ public class HxRoleMenuServiceImpl implements RoleMenuService {
 	@Override
 	public void addFittingAuth(HxRoleMenu hxRoleMenu) {
 		hxRoleMenuDao.addFittingAuth(hxRoleMenu);		
+	}
+
+	@Override
+	public List<Map<String, Object>> getHxRoleAuthorityExport(HxRole role) {
+		return hxRoleMenuDao.getHxRoleAuthorityExport(role);
 	}
 
 }

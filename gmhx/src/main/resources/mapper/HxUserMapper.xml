@@ -225,10 +225,10 @@
  <select id="getUserByUserLoginName" resultType="com.gome.gmhx.entity.SysUser" parameterType="java.lang.String" >
     select t.user_login_name userAccount, t.user_name userName, t.user_login_password userPassword, 3 fromType, t.user_org_id companyId,t.user_active as userState,
     	(SELECT name FROM hx_organization_unload WHERE id=t.user_org_id) companyName, t1.position_id sysPositionId,
-    	t2.position_name sysPositionName
+    	t2.position_name sysPositionName,t2.org_id as orgId
     from hx_user t left join hx_user_position t1 on t.user_login_name = t1.user_login_name and t1.from_type=3
     LEFT JOIN hx_position t2 ON t1.position_id=t2.position_code
-    where t.user_login_name = #{indexLoginId,jdbcType=VARCHAR} and t2.position_type=0
+    where t.user_login_name = #{indexLoginId,jdbcType=VARCHAR} limit 1
   </select>
   
   <select id="getPositionPageListByUserLoginName" parameterType="com.gome.common.page.Page" resultMap="positionResultMap">
@@ -351,27 +351,27 @@
   </update>
   
   <select id="getPositionInfoBySysUser" resultType="com.gome.gmhx.entity.SysUser" parameterType="com.gome.gmhx.entity.SysUser">
-		select t.sysPositionId,t.sysPositionName,t.companyId,t.companyName from (
+		select t.sysPositionId,t.sysPositionName,t.companyId,t.companyName,t.orgId from (
 		select distinct(t.ap_account) userAccount,0 positionType,left(t1.positioncode,length(t1.positioncode)-10) companyId,
 		(select name from hx_organization_unload where id=left(t1.positioncode,length(t1.positioncode)-10)) companyName,
-		t1.positioncode sysPositionId,t1.positionname sysPositionName
+		t1.positioncode sysPositionId,t1.positionname sysPositionName,left(t1.positioncode,length(t1.positioncode)-10) orgId
     	from emp_account t left join emp_empposition t1
     	ON t.empno=t1.empno where t.ap_account=#{userAccount} and t1.positioncode=#{sysPositionId}
 		union all 
 		select t.user_login_name userAccount,t2.position_type as positionType, t.user_org_id companyId,
     	(SELECT name FROM hx_organization_unload WHERE id=t.user_org_id) companyName, t1.position_id sysPositionId,
-    	t2.position_name sysPositionName
+    	t2.position_name sysPositionName,t2.org_id as orgId
     	from hx_user t left join hx_user_position t1 on t.user_login_name = t1.user_login_name and t1.from_type=3
     	LEFT JOIN hx_position t2 ON t1.position_id=t2.position_code where t.user_login_name=#{userAccount}
     	and t2.position_code=#{sysPositionId}
 		union all 
 		SELECT t.CZY01 userAccount, t2.position_type as positionType,t.GSXX01 companyId,
   		(SELECT name FROM hx_organization_unload WHERE id=AZWD01) companyName,
-  		t1.position_id sysPositionId,t2.position_name sysPositionName
+  		t1.position_id sysPositionId,t2.position_name sysPositionName,t2.org_id as orgId
 		FROM jl_account t LEFT JOIN hx_user_position t1 ON t1.from_type=2 AND t.CZY01=t1.user_login_name
 		LEFT JOIN hx_position t2 ON t1.position_id=t2.position_code where t.CZY01=#{userAccount}
 		and t2.position_code=#{sysPositionId}
-		) t where t.positionType = '0'
+		) t 
 	</select>
 	
 	<select id="getUserExport" parameterType="com.gome.gmhx.entity.HxUser" resultType="hashmap">

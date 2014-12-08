@@ -161,6 +161,23 @@
 		});
 	}
 	
+	function importRoleAuthorityExcel(){
+		parent.$.modalDialog({
+			title : '角色权限数据导入',
+			width : 400,
+			height :250,
+			closable : false,
+			href : '${ctx}/common/import/importData?templateName=roleauthority&actionName=importHxRoleAuthority',
+			buttons : [ 
+			{
+				text : '关闭',
+				handler : function() {
+					parent.$.modalDialog.handler.dialog('close');
+				}
+			}]
+		});
+	}
+	
 	function exportExcel(){
 		var opts = dataGrid.datagrid('getColumnFields');
 		var fieldArray = new Array();
@@ -171,6 +188,10 @@
 			titleArray.push(column.title);
 		}
 		window.location.href = "${ctx}/hxRole/exportExcel?" + encodeURI($('#searchForm').serialize()) + "&tableField=" + fieldArray.join("|") + "&tableHeader=" + encodeURI(encodeURI(titleArray.join("|")));
+	}
+	
+	function exportRoleAuthorityExcel(){
+		window.location.href = "${ctx}/hxRoleMenu/exportRoleAuthorityExcel?" + encodeURI($('#searchForm').serialize());
 	}
 	
 </script>
@@ -205,6 +226,10 @@
 				data-options="iconCls:'icon-excel',plain:true" onclick="exportExcel();">角色导出</a>
 			<a href="javascript:void(0);" class="easyui-linkbutton"
 				data-options="iconCls:'icon-excel',plain:true" onclick="importAuthorityExcel();">权限导入</a>
+			<a href="javascript:void(0);" class="easyui-linkbutton"
+				data-options="iconCls:'icon-excel',plain:true" onclick="importRoleAuthorityExcel();">角色权限导入</a>
+			<a href="javascript:void(0);" class="easyui-linkbutton"
+				data-options="iconCls:'icon-excel',plain:true" onclick="exportRoleAuthorityExcel();">角色权限导出</a>
 		</div>
 		<div data-options="region:'center',border:false">
 			<table id="dataGrid"></table>

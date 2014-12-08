@@ -32,8 +32,9 @@ public class HxRoleMenu {
     
     public HxRoleMenu(){}
     
-    public HxRoleMenu(String menuId){
+    public HxRoleMenu(String menuId,String roleCategoryId){
     	this.menuId=menuId;
+    	this.roleCategoryId=roleCategoryId;
     }
     
     public String getRoleId() {

@@ -91,6 +91,7 @@ public class HxRoleController {
 		String header = URLDecoder.decode(tableHeader, "UTF-8");
 		List<Map<String, Object>> list = roleService.getHxRoleExport(hxRole);
 		ViewExcel viewExcel = new ViewExcel("导出实例" + DateUtils.formatDateTime(new Date(), DateUtils.FORMAT_THREE), tableField, header, list);
+		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@:"+tableField+header);
 		return new ModelAndView(viewExcel);
 	}
 }

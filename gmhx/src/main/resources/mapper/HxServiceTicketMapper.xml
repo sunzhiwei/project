@@ -311,6 +311,7 @@
 	<if test="param.serviceStatus != null and param.serviceStatus !=''"><![CDATA[and T.service_status >= #{param.serviceStatus}]]></if>
 	<if test="param.createOrganization != null and param.createOrganization !=''">and FIND_IN_SET(T.create_organization_s,#{param.createOrganization})</if>
 	
+	<if test="param.serviceCustomer !=null and param.serviceCustomer.customerType != null and param.serviceCustomer.customerType !=''">and T2.customer_type like CONCAT('%',#{param.serviceCustomer.customerType},'%')</if>
 	<if test="param.serviceCustomer !=null and param.serviceCustomer.customerName != null and param.serviceCustomer.customerName !=''">and T2.customer_name like CONCAT('%',#{param.serviceCustomer.customerName},'%')</if>
 	<if test="param.serviceCustomer !=null and param.serviceCustomer.phone != null and param.serviceCustomer.phone !=''">and T2.phone like CONCAT('%',#{param.serviceCustomer.phone},'%')</if>
 	<if test="param.serviceCustomer !=null and param.serviceCustomer.telephone != null and param.serviceCustomer.telephone !=''">and T2.telephone like CONCAT('%',#{param.serviceCustomer.telephone},'%')</if>
@@ -334,6 +335,7 @@
 	<if test="param.serviceProduct !=null and param.serviceProduct.installProvince != null and param.serviceProduct.installProvince !=''">and T1.install_province like CONCAT('%',#{param.serviceProduct.installProvince},'%')</if>
 	<if test="param.serviceProduct !=null and param.serviceProduct.installDetailAddress != null and param.serviceProduct.installDetailAddress !=''">and T1.install_detail_address like CONCAT('%',#{param.serviceProduct.installDetailAddress},'%')</if>
 	
+	<if test="param.serviceTicket !=null and param.serviceTicket.serviceType != null and param.serviceTicket.serviceType !=''">and T.service_type like CONCAT('%',#{param.serviceTicket.serviceType},'%')</if>
 	<if test="param.serviceTicket !=null and param.serviceTicket.serviceId != null and param.serviceTicket.serviceId !=''">and T.service_id like CONCAT('%',#{param.serviceTicket.serviceId},'%')</if>
 	<if test="param.serviceTicket !=null and param.serviceTicket.createManS != null and param.serviceTicket.createManS !=''">and T.create_man_s like CONCAT('%',#{param.serviceTicket.createManS},'%')</if>
 	<if test="param.serviceTicket !=null and param.serviceTicket.createOrganizationS != null and param.serviceTicket.createOrganizationS !=''">and T.create_organization_s like CONCAT('%',#{param.serviceTicket.createOrganizationS},'%')</if>

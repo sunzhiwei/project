@@ -57,23 +57,23 @@
 	
 	<select id="getPositions" resultType="hashmap" parameterType="string">
 		select t.sysPositionId as id,t.sysPositionName as name from (
-		select distinct(t.ap_account) userAccount,0 positionType,left(t1.positioncode,length(t1.positioncode)-10) companyId,
+		select distinct(t.ap_account) userAccount,left(t1.positioncode,length(t1.positioncode)-10) companyId,
 		(select name from hx_organization_unload where id=left(t1.positioncode,length(t1.positioncode)-10)) companyName,
 		t1.positioncode sysPositionId,t1.positionname sysPositionName
     	from emp_account t left join emp_empposition t1
     	ON t.empno=t1.empno where t.ap_account=#{userAccount}
 		union all 
-		select t.user_login_name userAccount,t2.position_type as positionType, t.user_org_id companyId,
+		select t.user_login_name userAccount, t.user_org_id companyId,
     	(SELECT name FROM hx_organization_unload WHERE id=t.user_org_id) companyName, t1.position_id sysPositionId,
     	t2.position_name sysPositionName
     	from hx_user t left join hx_user_position t1 on t.user_login_name = t1.user_login_name and t1.from_type=3
     	LEFT JOIN hx_position t2 ON t1.position_id=t2.position_code where t.user_login_name=#{userAccount}
 		union all 
-		SELECT t.CZY01 userAccount, t2.position_type as positionType,t.GSXX01 companyId,
+		SELECT t.CZY01 userAccount,t.GSXX01 companyId,
   		(SELECT name FROM hx_organization_unload WHERE id=AZWD01) companyName,
   		t1.position_id sysPositionId,t2.position_name sysPositionName
 		FROM jl_account t LEFT JOIN hx_user_position t1 ON t1.from_type=2 AND t.CZY01=t1.user_login_name
-		LEFT JOIN hx_position t2 ON t1.position_id=t2.position_code where t.CZY01=#{userAccount}) t where t.positionType = '0'
+		LEFT JOIN hx_position t2 ON t1.position_id=t2.position_code where t.CZY01=#{userAccount}) t 
 	</select>
 	
 	<select id="getCodeValue" parameterType="map" resultType="string">

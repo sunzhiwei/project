@@ -39,4 +39,6 @@ public interface ExcelImportService {
 
 	public void importHxRoleAuthority(Workbook workbook);
 
+	public void importHxPosition(Workbook workbook);
+
 }

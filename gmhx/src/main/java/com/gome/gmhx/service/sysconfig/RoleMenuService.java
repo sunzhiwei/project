@@ -1,10 +1,12 @@
 package com.gome.gmhx.service.sysconfig;
 
 import java.util.List;
+import java.util.Map;
 
 import com.gome.gmhx.entity.EccGoodsCategory;
 import com.gome.gmhx.entity.HxFittingAuth;
 import com.gome.gmhx.entity.HxMenu;
+import com.gome.gmhx.entity.HxRole;
 import com.gome.gmhx.entity.HxRoleMenu;
 
 public interface RoleMenuService {
@@ -32,4 +34,6 @@ public interface RoleMenuService {
 	public void addRoleCategory(HxRoleMenu hxRoleMenu);
 
 	public void addFittingAuth(HxRoleMenu hxRoleMenu);
+	
+	public List<Map<String, Object>> getHxRoleAuthorityExport(HxRole hxRole);
 }

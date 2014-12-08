@@ -18,9 +18,9 @@
   </sql>
  
   <select id="getPositionTree" resultMap="hxPositionResult">
-		select t.position_code,t.position_name,t.position_type,t.from_type from (
-		select hp.position_code, hp.position_name, hp.position_type, '0' as from_type from hx_position hp
-		union select distinct(ep.positioncode) as position_code, ep.positionname as position_name,'0' as position_type,'1' as from_type from emp_empposition  ep ) t
+		select t.position_code,t.position_name,t.from_type from (
+		select hp.position_code, hp.position_name,'0' as from_type from hx_position hp
+		union select distinct(ep.positioncode) as position_code, ep.positionname as position_name,'1' as from_type from emp_empposition  ep ) t
   </select>
  
   <select id="getPositionTreeData" resultMap="hxPositionResult" parameterType="com.gome.gmhx.entity.HxUserPosition">
@@ -28,8 +28,8 @@
 		(select hup.position_id,hup.user_login_name, hup.from_type from hx_user_position  hup
 		union select emp.position_id,emp.user_login_name,emp.from_type from hx_emp_unload emp)
 		up left join (
-		select hp.position_code, hp.position_name, hp.position_type, '0' as from_type from hx_position hp
-		union select distinct(ep.positioncode) as position_code, ep.positionname as position_name,'0' as position_type,'1' as from_type from emp_empposition  ep ) t
+		select hp.position_code, hp.position_name, '0' as from_type from hx_position hp
+		union select distinct(ep.positioncode) as position_code, ep.positionname as position_name,'1' as from_type from emp_empposition  ep ) t
  		on up.position_id = t.position_code
 		where up.user_login_name = #{userLoginName,jdbcType=VARCHAR}
 		and up.from_type =  #{fromType,jdbcType=VARCHAR}

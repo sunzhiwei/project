@@ -122,10 +122,10 @@
 	<select id="selectAccountByPrimaryKey" resultType="com.gome.gmhx.entity.SysUser" parameterType="java.lang.String">
 		SELECT t.CZY01 userAccount,t.RYXM userName,t.CZYMM userPassword,2 fromType, t.GSXX01 companyId,t.ZT as userState,
   		(SELECT name FROM hx_organization_unload WHERE id=AZWD01) companyName,
-  		t1.position_id sysPositionId,t2.position_name sysPositionName
+  		t1.position_id sysPositionId,t2.position_name sysPositionName,t2.org_id as orgId
 		FROM jl_account t LEFT JOIN hx_user_position t1 ON t1.from_type=2 AND t.CZY01=t1.user_login_name
 		LEFT JOIN hx_position t2 ON t1.position_id=t2.position_code
-		WHERE CZY01 = #{czy01,jdbcType=VARCHAR}
+		WHERE CZY01 = #{czy01,jdbcType=VARCHAR} limit 1
 	</select>
 	<delete id="deleteAccountByPrimaryKey" parameterType="java.lang.String">
 		delete from jl_account

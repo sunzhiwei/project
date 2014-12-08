@@ -399,6 +399,25 @@ public class ExcelImportController {
 		return message.toString();
 	}
 	
+	@RequestMapping(value = "/importHxPosition", produces = "text/plain;charset=utf-8")
+	@ResponseBody
+	public String importHxPosition(HttpServletRequest request) {
+		JSONObject message = new JSONObject();
+		try{
+			Workbook workbook = this.transformToWorkbook(request);
+			if(workbook==null){
+				message.put("msg","文件格式不正确！");
+			}else{
+				   this.excelImportService.importHxPosition(workbook);
+				   message.put("msg","数据导入成功！");
+			}
+		}catch(Exception e){
+			message.put("msg","数据导入失败！");
+			e.printStackTrace();
+		}
+		return message.toString();
+	}
+	
 	private Workbook transformToWorkbook(HttpServletRequest request) throws IOException{
 		MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
 		MultipartFile multipartFile = multipartRequest.getFile("fileData");

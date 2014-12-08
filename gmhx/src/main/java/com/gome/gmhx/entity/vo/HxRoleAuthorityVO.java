@@ -4,11 +4,21 @@ public class HxRoleAuthorityVO {
 
 	private String roleId;
 	
-	private String CategoryId;
+	private String roleName;
+	
+	private String roleDesc;
+	
+	private String categoryId;
+	
+	private String categoryName;
 	
 	private String fittingAuthId;
 	
+	private String fittingAuthName;
+	
 	private String menuId;
+	
+	private String menuName;
 
 	public String getRoleId() {
 		return roleId;
@@ -18,12 +28,36 @@ public class HxRoleAuthorityVO {
 		this.roleId = roleId;
 	}
 
+	public String getRoleName() {
+		return roleName;
+	}
+
+	public void setRoleName(String roleName) {
+		this.roleName = roleName;
+	}
+
+	public String getRoleDesc() {
+		return roleDesc;
+	}
+
+	public void setRoleDesc(String roleDesc) {
+		this.roleDesc = roleDesc;
+	}
+
 	public String getCategoryId() {
-		return CategoryId;
+		return categoryId;
 	}
 
 	public void setCategoryId(String categoryId) {
-		CategoryId = categoryId;
+		this.categoryId = categoryId;
+	}
+
+	public String getCategoryName() {
+		return categoryName;
+	}
+
+	public void setCategoryName(String categoryName) {
+		this.categoryName = categoryName;
 	}
 
 	public String getFittingAuthId() {
@@ -34,11 +68,27 @@ public class HxRoleAuthorityVO {
 		this.fittingAuthId = fittingAuthId;
 	}
 
+	public String getFittingAuthName() {
+		return fittingAuthName;
+	}
+
+	public void setFittingAuthName(String fittingAuthName) {
+		this.fittingAuthName = fittingAuthName;
+	}
+
 	public String getMenuId() {
 		return menuId;
 	}
 
 	public void setMenuId(String menuId) {
 		this.menuId = menuId;
+	}
+
+	public String getMenuName() {
+		return menuName;
+	}
+
+	public void setMenuName(String menuName) {
+		this.menuName = menuName;
 	}
 }

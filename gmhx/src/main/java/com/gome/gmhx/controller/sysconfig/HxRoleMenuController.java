@@ -1,9 +1,13 @@
 package com.gome.gmhx.controller.sysconfig;
 
+import java.net.URLDecoder;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -14,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.gome.common.bean.ViewExcel;
+import com.gome.common.util.DateUtils;
+import com.gome.common.util.DecoderUtil;
 import com.gome.gmhx.entity.EccGoodsCategory;
 import com.gome.gmhx.entity.HxFittingAuth;
 import com.gome.gmhx.entity.HxMenu;
@@ -187,6 +194,15 @@ public class HxRoleMenuController {
 	         }
 	     }
 		return array.toString();
+	}
+	
+	@RequestMapping(value="/exportRoleAuthorityExcel")
+	public ModelAndView exportRoleAuthorityExcel(HxRole hxRole) throws Exception{
+		String tableField="roleName|roleDesc|menuName|fittingAuthName";
+		String header="角色名称|角色描述|菜单权限|物料权限";
+		List<Map<String, Object>> list = roleMenuService.getHxRoleAuthorityExport(hxRole);
+		ViewExcel viewExcel = new ViewExcel("导出实例" + DateUtils.formatDateTime(new Date(), DateUtils.FORMAT_THREE), tableField, header, list);
+		return new ModelAndView(viewExcel);
 	}
 	
 }

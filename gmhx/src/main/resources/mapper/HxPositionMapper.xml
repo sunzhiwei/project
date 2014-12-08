@@ -197,7 +197,11 @@ select distinct emp.positionname as position_name,
   </select>
   
    <select id="getParentList" resultType="java.lang.String" parameterType="java.lang.String">
-   		select getParentList(#{positionId,jdbcType=VARCHAR}) pid
+   		select getParentList(#{id,jdbcType=VARCHAR}) pid
+  </select>
+  
+  <select id="getCategoryParentList" resultType="java.lang.String" parameterType="java.lang.String">
+   		select getCategoryParentList(#{id,jdbcType=VARCHAR}) pid
   </select>
   
   <insert id="addPositionRole" parameterType="com.gome.gmhx.entity.HxPosition" >
