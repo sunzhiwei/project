@@ -52,7 +52,7 @@ public class XmlUtil {
 	public static XmlUtil getInstance(){
 		return xmlUtil;
 	}
-		
+	     	
 	public String genXmlByTemplate(String templateNamePath,Map<String,String> context) throws ResourceNotFoundException, ParseErrorException, Exception{
 		Template template = veEngine.getTemplate(templateNamePath);
 		VelocityContext velocityContext = new VelocityContext();
