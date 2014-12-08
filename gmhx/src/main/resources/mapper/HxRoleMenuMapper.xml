@@ -118,7 +118,7 @@
     insert into hx_role_category (role_id, role_category)
     VALUES
     <foreach collection="list" item="item" separator=",">
-      (#{item.roleId,jdbcType=VARCHAR}, #{item.roleCategoryId,jdbcType=VARCHAR})
+      (#{item.roleId,jdbcType=VARCHAR}, #{item.categoryId,jdbcType=VARCHAR})
     </foreach>
   </insert>
   

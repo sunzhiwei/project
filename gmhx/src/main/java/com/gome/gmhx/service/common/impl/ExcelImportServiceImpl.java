@@ -329,8 +329,8 @@ public class ExcelImportServiceImpl implements ExcelImportService {
 		Sheet st= workbook.getSheetAt(0);
 		List<Object> hxRoleAuthoritys = this.xSSFSheetToObjectList(st, new HxRoleAuthorityVO(), roleAuthorityPropery);
 		List<HxRoleAuthorityVO> roleFittingAuthList=new ArrayList<HxRoleAuthorityVO>();
-		List<HxRoleMenu> roleMenuList=new ArrayList<HxRoleMenu>();  // 父子菜单特殊处理
-		List<HxRoleMenu> roleCategoryList=new ArrayList<HxRoleMenu>(); // 父子菜单特殊处理
+		List<HxRoleAuthorityVO> roleMenuList=new ArrayList<HxRoleAuthorityVO>();  // 父子菜单特殊处理
+		List<HxRoleAuthorityVO> roleCategoryList=new ArrayList<HxRoleAuthorityVO>(); // 父子菜单特殊处理
 		for(Object o:hxRoleAuthoritys){
 			HxRoleAuthorityVO roleAuthority=(HxRoleAuthorityVO) o;
 			if(roleAuthority.getRoleId()!=null && !"".equals(roleAuthority.getRoleId().trim())){
@@ -340,7 +340,7 @@ public class ExcelImportServiceImpl implements ExcelImportService {
 						String splits[]=categoryPids.split(",");
 						for(String categoryId:splits){
 							if(!"".equals(categoryId))
-								roleCategoryList.add(new HxRoleMenu(null,categoryId));
+								roleCategoryList.add(new HxRoleAuthorityVO(roleAuthority.getRoleId(),null,categoryId));
 						}
 					}
 				}
@@ -352,7 +352,7 @@ public class ExcelImportServiceImpl implements ExcelImportService {
 						String splits[]=parentIds.split(",");
 						for(String menuId:splits){
 							if(!"0".equals(menuId))
-								roleMenuList.add(new HxRoleMenu(menuId,null));
+								roleMenuList.add(new HxRoleAuthorityVO(roleAuthority.getRoleId(),menuId,null));
 						}
 					}
 				}

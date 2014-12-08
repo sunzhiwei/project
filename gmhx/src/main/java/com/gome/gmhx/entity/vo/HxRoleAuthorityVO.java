@@ -19,6 +19,14 @@ public class HxRoleAuthorityVO {
 	private String menuId;
 	
 	private String menuName;
+	
+	public HxRoleAuthorityVO(){};
+	
+	public HxRoleAuthorityVO(String roleId,String menuId,String categoryId){
+    	this.roleId=roleId;
+    	this.menuId=menuId;
+    	this.categoryId=categoryId;
+    }
 
 	public String getRoleId() {
 		return roleId;
