@@ -41,7 +41,7 @@ public class BeanTool extends BeanUtils {
 	public static String DATA_BASE_TYPE = "int;java.lang.Integer;short;java.lang.Short;float;java.lang.Float;double;java.lang.Double;char;java.lang.Char;long;java.lang.Long;boolean;java.lang.Boolean;Sjava.lang.String;byte;java.lang.Byte;";
 	public static String ATTRIBUTE_VALUE = "value";
 	private class booleanTranslator {
-
+        
 		public boolean getValueByString(String s) {
 			s = s.trim().toLowerCase();
 			return s.equals("true") || s.equals("1");
