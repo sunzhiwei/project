@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns1:MT_CRM_Req xmlns:ns1="_http://gome.com/DIS/MOBILE/Inbound">
+  <HEADER>
+    <INTERFACE_ID>CRM270</INTERFACE_ID>
+    <MESSAGE_ID>541DD08C845203B5E10000000A800B02</MESSAGE_ID>
+    <SENDER>CRM</SENDER>
+    <RECEIVER>MDIS</RECEIVER>
+    <DTSEND>20140922033348306</DTSEND>
+  </HEADER>
+  <XML_DATA>
+    <CRM270>
+      <HEADER>
+        <GSXX01 />
+        <WXLX>0</WXLX>
+        <THDH />
+        <DJZT>E0010</DJZT>
+        <YYSJ>20140923000000</YYSJ>
+        <LXDZ />
+        <KHMC />
+        <LXDH />
+        <QTDH />
+        <HWZTSJ />
+        <YJWD01>S121</YJWD01>
+        <AZWD01 />
+        <GRDM1>4001171</GRDM1>
+        <GRDM2 />
+        <SPBM>000000000100210471</SPBM>
+        <SPMC></SPMC>
+        <HZGRDM>LGX121016</HZGRDM>
+        <HZGRMC>LGX121016</HZGRMC>
+        <HZRQ>20140922113347</HZRQ>
+        <PGR>LGX121016</PGR>
+        <PGSJ>20140922113347</PGSJ>
+        <BZ />
+        <AZLEX>00</AZLEX>
+        <XXLY />
+        <WB_AZD01>0200080373</WB_AZD01>
+        <AZD01 />
+        <WB_GSXX01>4001</WB_GSXX01>
+        <ZYYSJD>08-10</ZYYSJD>
+        <ZAZLB></ZAZLB>
+      </HEADER>
+      <ITEMS>
+        <ITEM1>
+          <WXCS01>540000160</WXCS01>
+          <WXCSMC>安装费</WXCSMC>
+          <SL>1.000</SL>
+          <WXCSFY>100.00</WXCSFY>
+          <WXD01>0200080373</WXD01>
+        </ITEM1>
+        <ITEM2>
+          <SPBM>1231</SPBM>
+          <SPMC>abcd</SPMC>
+          <SL>1</SL>
+          <DJ>1</DJ>
+          <JE>2</JE>
+          <PPB01>3</PPB01>
+          <SPFL01>4</SPFL01>
+          <WXD01>5</WXD01>
+        </ITEM2>
+      </ITEMS>
+    </CRM270>
+  </XML_DATA>
+</ns1:MT_CRM_Req> 
