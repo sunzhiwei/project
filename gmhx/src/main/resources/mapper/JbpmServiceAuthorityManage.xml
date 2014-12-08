@@ -175,10 +175,10 @@
 	<!-- 结算单根据申请网点下普通岗的人 -->
 	<select id="queryWebSiteParticipantsForServiceBill" resultType="com.gome.gmhx.jbpm.JbpmParticipant"
 		parameterType="map">
-		SELECT  t.userAccount,t.postionId,'service' AS positionType
+		SELECT  t.userAccount,t.positionId,'service' AS positionType
            FROM
            (
-               SELECT  hul.user_login_name AS userAccount,t.position_id as postionId
+               SELECT  hul.user_login_name AS userAccount,t.position_id as positionId
 			   FROM
 			   hx_user_unload hul,hx_examine_settlement_ticket hest,
 			    (select user_login_name,position_id from hx_emp_unload

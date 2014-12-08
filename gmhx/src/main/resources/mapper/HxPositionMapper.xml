@@ -10,6 +10,8 @@
     <result column="position_origin" property="positionOrigin" jdbcType="VARCHAR" />
     <result column="position_org_name" property="positionOrgName" jdbcType="VARCHAR" />
     <result column="modify_date" property="modifyDate" jdbcType="TIMESTAMP" />
+    <result column="role_id" property="roleId" jdbcType="VARCHAR" />
+    <result column="role_name" property="roleName" jdbcType="VARCHAR" />
   </resultMap>
  
  <resultMap id="positionCategoryMap" type="com.gome.gmhx.entity.EccGoodsCategory" >
@@ -42,8 +44,11 @@
   </select>
   
   <select id="getPositionById" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select position_code,position_name, position_type,org_id,'0' as from_type,position_code,position_origin,hou.name as position_org_name from hx_position left join hx_organization_unload hou on org_id = hou.id where 0=0
-    and position_code = #{positionCode,jdbcType=VARCHAR}
+    select hp.position_code,hp.position_name, hp.position_type,hp.org_id,'0' as from_type,hp.position_origin,hou.name as position_org_name,hpr.role_id,hr.role_name
+ 	from hx_position hp left join hx_organization_unload hou on hp.org_id = hou.id 
+ 	left join hx_position_role hpr on hp.position_code = hpr.position_id
+    left join hx_role hr on hpr.role_id = hr.role_id where 0=0
+    and hp.position_code = #{positionCode,jdbcType=VARCHAR}
   </select>
   
   
@@ -66,7 +71,9 @@
   </update>
   
    <select id="getPositionByCode" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select  positioncode as position_code,positionname as position_name,'0' as position_type,'1' as from_type,'gome' as position_origin,positioncode as position_code,onebranchname as position_org_name from emp_empposition where 0=0
+    select  positioncode as position_code,positionname as position_name,'0' as position_type,'1' as from_type,'gome' as position_origin,positioncode as position_code,onebranchname as position_org_name,hpr.role_id,hr.role_name from emp_empposition 
+    left join hx_position_role hpr on positioncode = hpr.position_id
+    left join hx_role hr on hpr.role_id = hr.role_id where 0=0
     and positioncode = #{positionCode,jdbcType=VARCHAR}
   </select>
   
@@ -192,4 +199,16 @@ select distinct emp.positionname as position_name,
    <select id="getParentList" resultType="java.lang.String" parameterType="java.lang.String">
    		select getParentList(#{positionId,jdbcType=VARCHAR}) pid
   </select>
+  
+  <insert id="addPositionRole" parameterType="com.gome.gmhx.entity.HxPosition" >
+    insert into hx_position_role (position_id, role_id)
+    values (#{positionCode,jdbcType=VARCHAR}, #{roleId,jdbcType=VARCHAR})
+  </insert>
+  
+  <delete id="deletePositionRoleByPositionId" parameterType="java.lang.String" >
+    delete from hx_position_role where 1=1
+    <if test="_parameter != null and _parameter != '' " >
+      and position_id = #{_parameter,jdbcType=VARCHAR}
+    </if>
+  </delete>
 </mapper>

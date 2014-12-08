@@ -166,8 +166,8 @@
 			t.note,
 			t.founder_date,
 			t.modefied_date,
-			t.modefieds,
-			t.founders,
+			v4.user_name modefieds,
+			v3.user_name founders,
 			t.receive_name,
 			t.receive_post,
 			t.receive_address,
@@ -176,10 +176,11 @@
 			hx_parcel_delivery t
 		INNER JOIN hx_organization_unload v ON v.id IS NOT NULL
 		INNER JOIN hx_organization_unload v3 ON v3.id IS NOT NULL
-		
 		AND v.id = t.receive_unit
 		AND v3.id = t.send_unit
 		LEFT JOIN v_code v1 ON v1.code_id = 'ybzt' AND v1.code_key = t.state
+    	LEFT JOIN hx_user_unload v3 on v3.user_login_name = t.founders
+    	LEFT JOIN hx_user_unload v4 on v3.user_login_name = t.modefieds
 		where t.parcel_code=#{parcelCode,jdbcType=VARCHAR}
 	</select>
 

@@ -34,7 +34,7 @@
 		SELECT t.id, v1.code_value compare_type, t.inner_code1, t.inner_code2,
 				t.outer_code, t.inner_model1, t.inner_model2, t.outer_model, t.whole_model,
 				t.code_begin, t.update_time,
-     			(SELECT gome_code FROM hx_product_detail WHERE model=whole_model) gome_code
+     			(SELECT DISTINCT gome_code FROM hx_product_detail WHERE model=whole_model) gome_code
    		FROM hx_code_bar t
    		LEFT JOIN v_code v1 ON t.compare_type=v1.code_key AND v1.code_id='dzlx'
    		)t1
@@ -142,9 +142,7 @@
     </select>
     
      <select id="getHxCodeBarByMachineCode"  resultMap="BaseResultMap" parameterType="java.lang.String" >
-  			  select * from hx_code_bar where inner_model1 = #{machineCode,jdbcType=VARCHAR}
-                                                          or inner_model2 = #{machineCode,jdbcType=VARCHAR}
-                                                          or outer_model = #{machineCode,jdbcType=VARCHAR}
+  			  select * from hx_code_bar where whole_model = #{machineCode,jdbcType=VARCHAR}
     </select> 
     
 </mapper>

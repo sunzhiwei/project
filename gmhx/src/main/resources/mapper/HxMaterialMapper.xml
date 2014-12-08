@@ -24,6 +24,8 @@
 	    <result column="send_number" property="sendNumber" jdbcType="VARCHAR"/>
 	    <result column="move_direction" property="moveDirection" jdbcType="VARCHAR"/>
 	    <result column="related_list_number" property="relatedListNumber" jdbcType="VARCHAR"/>
+	    <result column="in_batch" property="inBatch" jdbcType="VARCHAR"/>
+	    <result column="out_batch" property="outBatch" jdbcType="VARCHAR"/>
   	</resultMap>
   	
   	<resultMap id="currentStockMap" type="com.gome.gmhx.entity.HxCurrentStock" >
@@ -38,7 +40,7 @@
   	<sql id="Base_Column_List" >
 	    type, send_company, receive_company, list_number, proposer, apply_date, comment,fitting_position_id,
 	    customer_name, customer_tel, address, status, fitting_org_id, create_person, create_time, update_person, 
-	    update_time,process_instance_id,applicant,send_number,move_direction,related_list_number
+	    update_time,process_instance_id,applicant,send_number,move_direction,related_list_number,in_batch,out_batch
   	</sql>
 
 	<select id="getFittingBySuit" resultType="string" parameterType="string">
@@ -65,6 +67,18 @@
 		WHERE send_number is not null
 		AND send_company = #{companyId}
 		AND DATE_FORMAT(create_time, 'm-%d-%Y') = DATE_FORMAT(now(), 'm-%d-%Y')
+	</select>
+	
+	<select id="getInBatchNumber" resultType="string">
+		SELECT lpad(count(*) + 1, 6, '0')
+		where in_batch is not null
+		FROM hx_material_manage
+	</select>
+	
+	<select id="getOutBatchNumber" resultType="string">
+		SELECT lpad(count(*) + 1, 6, '0')
+		where out_batch is not null
+		FROM hx_material_manage
 	</select>
 	
 	<select id="getFatherFittingOrgId" parameterType="string" resultType="string">
@@ -111,6 +125,29 @@
 		LEFT JOIN hx_fitting_detail t1 ON t.fitting_code = t1.fitting_code
 		INNER JOIN hx_material_manage t2 ON t.list_number = t2.list_number
 		where t.list_number=#{listNumber}	
+	</select>
+	
+	<select id="getHxMaterialShow" parameterType="string" resultMap="BaseResultMap">
+		SELECT
+			a.list_number, a.type, v2.`name` send_company,
+			v.`name` receive_company, a.proposer,
+			a.apply_date, a.`comment`,
+			a.customer_name, a.customer_tel,
+			a.address, a.`status`, a.comment,
+			a.fitting_org_id, v3.user_name create_person,
+			a.create_time, v4.user_name update_person,
+			a.update_time, a.process_instance_id, a.applicant,
+			a.send_number, a.fitting_position_id,
+			a.move_direction, a.related_list_number,
+			a.in_batch, a.out_batch
+		FROM
+			hx_material_manage a
+		LEFT JOIN hx_organization_unload v ON v.id IS NOT NULL AND v.id = a.receive_company
+		LEFT JOIN hx_organization_unload v2 ON v2.id IS NOT NULL AND v2.id = a.send_company
+		LEFT JOIN hx_user_unload v3 on v3.user_login_name = a.create_person
+		LEFT JOIN hx_user_unload v4 on v4.user_login_name = a.update_person
+		WHERE
+			a.list_number = #{listNumber}	
 	</select>
 	
 	<select id="getHxMaterialDetail2" parameterType="map" resultType="hashmap">
@@ -186,7 +223,8 @@
 	<select id="getHxMaterialHistoryPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
 		SELECT CONCAT(CASE WHEN t.type LIKE 'zb-%' THEN '总部' WHEN t.type LIKE 'fb-%' THEN '分部'
 				WHEN t.type LIKE 'wd-%' THEN '网点' END, t1.fitting_auth_name) type, t.type type_hidden,
-		t.list_number, t.send_number, t2.name send_company, t3.name receive_company, t4.code_value status, t.status status_hidden,t.update_time,
+		t.list_number, t.send_number, t2.name send_company, t3.name receive_company,
+		t4.code_value status, t.status status_hidden,t.update_time, t.proposer,
 		t5.code_value processInstanceId,t.process_instance_id processInstanceId_hidden 
 		FROM hx_material_manage t
 		LEFT JOIN hx_fitting_auth t1 ON t.type = t1.fitting_auth_id
@@ -216,7 +254,7 @@
 		 a.org_id, a.parcel_code, a.bills_code, a.carrier_unit, a.state,a.update_date, 
 		    a.send_date, a.delivery_way, a.trantransportation_expenses, a.package_number, a.package_weight, 
 		    a.package_volume, a.volume_weight, a.receive_name, a.receive_phone, a.receive_post, a.receive_address, 
-		    a.note, a.founders, a.founder_date, a.modefieds, a.modefied_date, a.send_number, 
+		    a.note, v3.user_name founders, a.founder_date, v4.user_name modefieds, a.modefied_date, a.send_number, 
 		    a.out_date, a.receive_date, a.type,
 		    v.name receive_unit, 
 		    v2.name send_unit
@@ -224,6 +262,8 @@
 			hx_parcel_delivery a 
 			LEFT JOIN hx_organization_unload v ON v.id IS NOT NULL AND v.id = a.receive_unit
 			LEFT JOIN hx_organization_unload v2 ON v2.id IS NOT NULL AND v2.id = a.send_unit
+			LEFT JOIN hx_user_unload v3 on v3.user_login_name = a.founders
+			LEFT JOIN hx_user_unload v4 on v4.user_login_name = a.modefieds
 			JOIN hx_parcel_material pm ON pm.parcel_code = a.parcel_code
 			AND pm.list_number IN (
 				SELECT
@@ -373,8 +413,28 @@
       <if test="sendNumber != null" >
       	send_number = #{sendNumber, jdbcType=VARCHAR}
       </if>
+      <if test="moveDirection != null">
+      	move_direction = #{moveDirection},
+      </if>
+      <if test="relatedListNumber != null">
+      	related_list_number = #{relatedListNumber},
+      </if>
+      <if test="inBatch != null">
+      	in_batch = #{inBatch},
+      </if>
+      <if test="outBatch != null">
+      	out_batch = #{outBatch},
+      </if>
     </set>
     where list_number = #{listNumber,jdbcType=VARCHAR}
+  </update>
+
+  <select id="getBatchNumber" resultType="long">
+  	select batch_number from hx_increment_config
+  </select>
+  
+  <update id="updateIncrementBatchNumber">
+  	update hx_increment_config set batch_number = batch_number+1;
   </update>
 	
 	

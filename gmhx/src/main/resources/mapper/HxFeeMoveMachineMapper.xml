@@ -123,9 +123,9 @@
     )
     VALUES
     <foreach collection="list" item="item" separator=",">
-     (#{item.fee_id,jdbcType=VARCHAR}, #{item.classify_code,jdbcType=VARCHAR}, #{item.whole_fee,jdbcType=FLOAT}, #{item.inner_fee,jdbcType=FLOAT}, 
-      #{item.outer_fee,jdbcType=FLOAT}, #{item.create_username,jdbcType=VARCHAR}, #{item.create_date,jdbcType=DATE}, 
-      #{item.operation_type,jdbcType=VARCHAR})
+     (#{item.feeID,jdbcType=VARCHAR}, #{item.classifyCode,jdbcType=VARCHAR}, #{item.wholefee,jdbcType=FLOAT}, #{item.innerfee,jdbcType=FLOAT}, 
+      #{item.outerfee,jdbcType=FLOAT}, #{item.createUsername,jdbcType=VARCHAR}, #{item.createDate,jdbcType=DATE}, 
+      #{item.operationType,jdbcType=VARCHAR})
     </foreach>
   </insert>
 	

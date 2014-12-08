@@ -97,4 +97,12 @@
 	in( select hpm.menu_id from hx_position_menu hpm where hpm.position_id=#{sysPositionId,jdbcType=VARCHAR})
 	order by sort asc
  </select>
+ 
+ <select id="getPositionRoleMenuTree" resultMap="BaseResultMap" parameterType="java.lang.String">
+	select t.* from hx_menu t where t.is_leaf_node='0' and t.menu_id 
+	in( select hrm.menu_id from hx_role_menu hrm 
+	left join hx_position_role hpr on hrm.role_id = hpr.role_id
+	left join hx_position hp on hpr.position_id = hp.position_code where hp.position_code=#{sysPositionId,jdbcType=VARCHAR})
+	order by sort asc
+ </select>
 </mapper>

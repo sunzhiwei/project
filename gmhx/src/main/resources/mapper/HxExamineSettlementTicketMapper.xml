@@ -117,7 +117,8 @@
 	LEFT JOIN v_organization v1 ON v1.id = T.service_unit
 	LEFT JOIN v_organization v2 ON v2.id = T.parent_organization
 	LEFT JOIN v_code v3 ON v3.code_id='st' AND T.settlement_type=v3.code_key
-	WHERE settlement_id in ${param.ids}
+	WHERE 1=1
+	<if test="param.ids != null and param.ids !=''">and T.settlement_id in ${param.ids}</if>
 	<if test="param.settlementId != null and param.settlementId !=''">and T.settlement_id like CONCAT('%',#{param.settlementId},'%')</if>
 	<if test="param.serviceUnit != null and param.serviceUnit !=''">and T.service_unit like CONCAT('%',#{param.serviceUnit},'%')</if>
 	<if test="param.parentOrganization != null and param.parentOrganization !=''">and T.parent_organization like CONCAT('%',#{param.parentOrganization},'%')</if>

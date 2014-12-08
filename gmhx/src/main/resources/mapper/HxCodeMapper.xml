@@ -79,4 +79,8 @@
 	<select id="getCodeValue" parameterType="map" resultType="string">
 		select code_value from v_code where code_id=#{codeId} and code_key = #{codeKey}
 	</select>
+	
+	<select id="getRoleCombobox" resultType="hashmap">
+		select role_id as id, role_name as name from hx_role 
+	</select>
 </mapper>

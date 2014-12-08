@@ -26,9 +26,25 @@
   </sql>
   
  <select id="getLimitPageList" parameterType="com.gome.common.page.Page" resultMap="BaseResultMap">
-	SELECT  limit_id, limit_org_id, limit_cash, limit_credit, limit_matter, limit_add_tag, limit_desc, 
-    limit_origin_number, limit_operate_type, limit_operate_reason, limit_operate_id, 
-    limit_operate_date,limit_origin_id,v.name as limit_org_name,v1.name as limit_org_parent_name   from hx_limit left join hx_organization_unload v on limit_org_id = v.id left join hx_organization_unload v1 on v.pid = v1.id where limit_operate_reason = '0' 
+	SELECT limit_id, limit_org_id, limit_cash, limit_credit,
+		limit_matter, limit_add_tag, limit_desc,
+		limit_origin_number, limit_operate_type,
+		limit_operate_reason, limit_operate_id,
+		limit_operate_date, limit_origin_id,
+		v. NAME AS limit_org_name,
+		v1. NAME AS limit_org_parent_name
+		FROM
+			(
+				SELECT
+					*
+				FROM
+					hx_limit tt
+				ORDER BY
+					limit_operate_date DESC
+			) hx_limit
+		LEFT JOIN hx_organization_unload v ON limit_org_id = v.id
+		LEFT JOIN hx_organization_unload v1 ON v.pid = v1.id
+		WHERE 1=1
 		<if test="param.limitOrgId != null and param.limitOrgId != ''">
 		   and limit_org_id like CONCAT('%',#{param.limitOrgId},'%')
 		</if>
@@ -38,6 +54,10 @@
 		<if test="param.limitOrgParentId != null and param.limitOrgParentId != ''">
 		   and v1.id like CONCAT('%',#{param.limitOrgParentId},'%')
 		</if>
+		GROUP BY
+			limit_org_id
+		ORDER BY
+			limit_operate_date DESC
   </select>
   
   <select id="getLimitById" resultMap="BaseResultMap" parameterType="java.lang.String" >
@@ -67,7 +87,7 @@
 	FROM
 		hx_limit
 	WHERE
-		limit_org_id = 'bjdzwd'
+		limit_org_id = #{orgId}
 	ORDER BY
 		limit_operate_date DESC
 	LIMIT 0,1;
@@ -104,9 +124,11 @@
   
   <select id="getLimitHistoryPageList" parameterType="com.gome.common.page.Page" resultMap="BaseResultMap">
 	SELECT  limit_id, limit_org_id, limit_cash, limit_credit, limit_matter, limit_add_tag, limit_desc, 
-    limit_origin_number, limit_operate_type, limit_operate_reason, limit_operate_id, 
+    limit_origin_number, limit_operate_type, limit_operate_reason, v3.user_name limit_operate_id, 
     limit_operate_date,limit_origin_id,v.name as limit_org_name,v1.name as limit_org_parent_name   
-    from hx_limit left join hx_organization_unload v on limit_org_id = v.id left join hx_organization_unload v1 on v.pid = v1.id
+    from hx_limit left join hx_organization_unload v on limit_org_id = v.id
+    left join hx_organization_unload v1 on v.pid = v1.id
+    LEFT JOIN hx_user_unload v3 on v3.user_login_name = hx_limit.limit_operate_id
     where 1=1 
 		<if test="param.limitOrgId != null and param.limitOrgId != ''">
 		   and limit_org_id like CONCAT('%',#{param.limitOrgId},'%')

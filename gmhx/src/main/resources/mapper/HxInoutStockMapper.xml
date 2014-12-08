@@ -4,7 +4,7 @@
 
   <select id="getInoutSotckHistoryPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
 		SELECT
-			d.fitting_code,c.code_value AS type,m.list_number,m. COMMENT,m.update_time,m.create_person,
+			d.fitting_code,c.code_value AS type,m.list_number,m. COMMENT,m.update_time,v3.user_name create_person,
 		IF (
 			ISNULL(d.audit_count),
 			d.apply_count,
@@ -16,6 +16,7 @@
 		INNER JOIN hx_material_detail d ON m.list_number = d.list_number
 		LEFT JOIN hx_organization_unload v ON v.id IS NOT NULL AND v.id = m.send_company
 		LEFT JOIN hx_organization_unload v2 ON v2.id IS NOT NULL AND v2.id = m.receive_company
+		LEFT JOIN hx_user_unload v3 on v3.user_login_name = m.create_person
 		INNER JOIN hx_fitting_detail ON hx_fitting_detail.fitting_code = d.fitting_code
 		INNER JOIN v_code c ON c.code_id = 'fitting_type' AND c.code_key = m.type
 		AND m.list_number IN (
@@ -62,7 +63,7 @@
 			m.list_number,
 			m. COMMENT,
 			m.update_time,
-		  m.create_person,
+		    v3.user_name create_person,
 		IF (
 			ISNULL(d.audit_count),
 			d.apply_count,
@@ -75,10 +76,9 @@
 		FROM
 			hx_material_manage m
 		INNER JOIN hx_material_detail d ON m.list_number = d.list_number
-		LEFT JOIN hx_organization_unload v ON v.id IS NOT NULL
-		AND v.id = m.send_company
-		LEFT JOIN hx_organization_unload v2 ON v2.id IS NOT NULL
-		AND v2.id = m.receive_company
+		LEFT JOIN hx_organization_unload v ON v.id IS NOT NULL AND v.id = m.send_company
+		LEFT JOIN hx_organization_unload v2 ON v2.id IS NOT NULL AND v2.id = m.receive_company
+		LEFT JOIN hx_user_unload v3 on v3.user_login_name = m.create_person
 		INNER JOIN hx_fitting_detail ON hx_fitting_detail.fitting_code = d.fitting_code
 		INNER JOIN v_code c ON c.code_id = 'fitting_type'
 		AND c.code_key = m.type

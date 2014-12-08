@@ -153,7 +153,7 @@
   </update>
   
     <select id="getHxProductDetailByMode" resultMap="BaseResultMap" parameterType="java.lang.String" >
-    select * from hx_product_detail  where code = #{code,jdbcType=VARCHAR}
+    select * from hx_product_detail  where model = #{code,jdbcType=VARCHAR}
   </select>
   
 </mapper>
