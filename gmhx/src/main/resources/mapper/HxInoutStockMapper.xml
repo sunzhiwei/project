@@ -49,10 +49,10 @@
 	   		AND hx_fitting_detail.fitting_type = #{param.fittingType}
 	   	</if>
 	   	<if test="param.ksrq != null and param.ksrq !=''">
-	   		 <![CDATA[ AND m.update_time > DATE( #{param.ksrq}) ]]>
+	   		<![CDATA[ and DATE_FORMAT(m.update_time, '%Y-%m-%d') >= #{param.ksrq}]]>
 	   	</if>
 	   	<if test="param.jsrq != null and param.jsrq !=''">
-	   		<![CDATA[ AND m.update_time < DATE( #{param.jsrq}) ]]>
+	   		<![CDATA[ and DATE_FORMAT(m.update_time, '%Y-%m-%d') <= #{param.jsrq}]]>
 	   	</if>
 	</select>
 	
@@ -101,10 +101,10 @@
 	   		AND hx_fitting_detail.fitting_type = #{param.fittingType}
 	   	</if>
 	   		<if test="param.ksrq != null and param.ksrq !=''">
-	   		 <![CDATA[ AND m.update_time > DATE( #{param.ksrq}) ]]>
+	   		<![CDATA[ and DATE_FORMAT(m.update_time, '%Y-%m-%d') >= #{param.ksrq}]]>
 	   	</if>
 	   	<if test="param.jsrq != null and param.jsrq !=''">
-	   		<![CDATA[ AND m.update_time < DATE( #{param.jsrq}) ]]>
+	   		<![CDATA[ and DATE_FORMAT(m.update_time, '%Y-%m-%d') >= #{param.ksrq}]]>
 	   	</if>
 	</select>
 	

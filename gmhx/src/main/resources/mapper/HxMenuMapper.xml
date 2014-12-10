@@ -84,7 +84,10 @@
   </update>
   
   <select id="getUserMenus" parameterType="com.gome.gmhx.entity.HxUserPosition" resultMap="BaseResultMap">
-	select m.* from hx_user_position up left join hx_position p on up.position_id = p.position_code left join hx_position_menu pm on p.position_code = pm.position_id left join hx_menu m on pm.menu_id = m.menu_id
+	select m.* from hx_user_position up left join hx_position p on up.position_id = p.position_code 
+	left join hx_position_role pr on pr.position_id = p.position_code 
+	left join hx_role_menu rm on pr.role_id = rm.role_id
+	left join hx_menu m on rm.menu_id = m.menu_id
     where up.user_login_name = #{userLoginName,jdbcType=VARCHAR} and up.from_type = #{fromType,jdbcType=VARCHAR}
  </select>
  

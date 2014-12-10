@@ -220,12 +220,12 @@
 			<a class="easyui-linkbutton" data-options="iconCls:'icon-add'"
 			onclick="addData();">添加</a> <a class="easyui-linkbutton"
 			data-options="iconCls:'icon-edit'" onclick="editData();">修改</a> 
-			<a href="javascript:void(0);" class="easyui-linkbutton"
+			<!-- <a href="javascript:void(0);" class="easyui-linkbutton"
 				data-options="iconCls:'icon-excel',plain:true" onclick="importExcel();">角色导入</a>
 			<a href="javascript:void(0);" class="easyui-linkbutton"
 				data-options="iconCls:'icon-excel',plain:true" onclick="exportExcel();">角色导出</a>
 			<a href="javascript:void(0);" class="easyui-linkbutton"
-				data-options="iconCls:'icon-excel',plain:true" onclick="importAuthorityExcel();">权限导入</a>
+				data-options="iconCls:'icon-excel',plain:true" onclick="importAuthorityExcel();">权限导入</a> -->
 			<a href="javascript:void(0);" class="easyui-linkbutton"
 				data-options="iconCls:'icon-excel',plain:true" onclick="importRoleAuthorityExcel();">角色权限导入</a>
 			<a href="javascript:void(0);" class="easyui-linkbutton"

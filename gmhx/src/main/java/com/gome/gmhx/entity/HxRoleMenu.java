@@ -30,14 +30,6 @@ public class HxRoleMenu {
      * @mbggenerated Fri Jul 18 14:26:16 CST 2014
      */
     
-    public HxRoleMenu(){}
-    
-    public HxRoleMenu(String roleId,String menuId,String roleCategoryId){
-    	this.roleId=roleId;
-    	this.menuId=menuId;
-    	this.roleCategoryId=roleCategoryId;
-    }
-    
     public String getRoleId() {
         return roleId;
     }

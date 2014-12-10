@@ -244,20 +244,6 @@
 	SELECT GROUP_CONCAT(id) FROM hx_organization_unload where FIND_IN_SET(pid,#{children, jdbcType=VARCHAR})
   </select>
   
-  <select id="getStore" resultType="hashmap">
-  	SELECT id,name FROM hx_organization_unload WHERE interface = 'md005' 
-  	<if test="_parameter != null and _parameter != ''">
-		AND pid = #{_parameter,jdbcType=VARCHAR}
-	</if>
-  </select>
-  
-  <select id="getServices" resultType="hashmap" parameterType="java.lang.String">
-  	SELECT id,name FROM hx_organization_unload WHERE interface = 'crm001'
-  	<if test="pid != null and pid != '' ">
-		and pid = #{pid,jdbcType=VARCHAR}
-	</if>
-  </select>
-  
   <delete id="delOrganizationById" parameterType="java.lang.String">
     delete from hx_organization where org_code = #{orgCode,jdbcType=VARCHAR}
   </delete>

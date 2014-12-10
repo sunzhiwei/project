@@ -28,9 +28,11 @@
 	</select>
 	
 	<select id="getFittingMenu" parameterType="string" resultType="hashmap">
-		select t.fitting_auth_id id, t1.fitting_auth_name name
-		from hx_position_fitting t, hx_fitting_auth t1
-		where t.fitting_auth_id=t1.fitting_auth_id and t.position_id=#{positionId}
+		SELECT t1.fitting_auth_name name, hx_role_fitting.fitting_auth_id id
+		FROM hx_fitting_auth AS t1
+		INNER JOIN hx_role_fitting ON hx_role_fitting.fitting_auth_id = t1.fitting_auth_id
+		INNER JOIN hx_position_role ON hx_position_role.role_id = hx_role_fitting.role_id
+		where hx_position_role.position_id=#{positionId}
 	</select>
 	
 	<select id="getFittingMenuNoPosition" resultType="hashmap">
@@ -82,5 +84,43 @@
 	
 	<select id="getRoleCombobox" resultType="hashmap">
 		select role_id as id, role_name as name from hx_role 
+	</select>
+	
+	<select id="getECCombobox" resultType="hashmap">
+		SELECT VKORG code,VTEXT name FROM ecc_sales_org
+	</select>
+	
+	<select id="getStoreCombobox" resultType="hashmap">
+		SELECT T.WERKS code,T.NAME1 name FROM ecc_store T 
+		WHERE VKORG NOT LIKE 'S%'
+		<if test="_parameter != null and _parameter != ''">
+			AND VKORG = #{_parameter,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="getWebsiteCombobox" resultType="hashmap">
+		SELECT cw.azwd01 AS code,cw.wdmc AS name
+			FROM crm_website cw 
+		UNION 
+		SELECT ho.org_code AS code ,ho.org_name AS name
+			FROM hx_organization ho WHERE ho.org_type='02' OR org_type='03'
+		UNION 
+		SELECT es.WERKS code,es.NAME1 name
+			FROM ecc_store es WHERE es.VKORG LIKE 'S%'
+	</select>
+	
+	<select id="getAftermarketCombobox" resultType="hashmap">
+		SELECT shgsdm code,shgsmc name FROM hx_custom_sale_mapping
+	</select>
+	
+	<select id="getModelCombobox" resultType="hashmap">
+		SELECT DISTINCT(model),gome_code,B.brand
+		FROM hx_product_detail P
+		LEFT JOIN hx_brand_information B ON P.gome_code = B.gm_code
+		WHERE P.model !=''
+	</select>
+	
+	<select id="getServiceUnit" resultType="hashmap" parameterType="java.lang.String">
+		SELECT id code,name FROM v_organization WHERE id = (SELECT pid FROM v_organization WHERE id = #{wd,jdbcType=VARCHAR})
 	</select>
 </mapper>

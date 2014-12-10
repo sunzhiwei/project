@@ -30,13 +30,6 @@
     where id = #{id,jdbcType=VARCHAR}
   </select>
   
-  <select id="getModel" resultType="hashmap">
-  	SELECT DISTINCT(model),gome_code,B.brand
-	FROM hx_product_detail P
-	LEFT JOIN hx_brand_information B ON P.gome_code = B.gm_code
-	WHERE P.model !=''
-  </select>
-  
   <select id="getHxProductDetailPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
     SELECT t.id, model, v1.code_value classify_code, t.product_code, t.product_name, t.english_name
 	, v2.code_value model_classify, v3.code_value product_model, v4.code_value gome_code, t.is_new

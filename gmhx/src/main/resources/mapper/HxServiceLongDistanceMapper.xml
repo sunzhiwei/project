@@ -136,8 +136,8 @@
   </select>
   <select id="getApplyPageList" parameterType="com.gome.common.page.Page" resultType="hashmap">
   	SELECT 
-	T.apply_id, v6.org_name apply_unit, T.sequence, T.mileage, T.other_fee, T.customer_name, T.customer_phone, 
-	T.customer_address, T.machine_type, v1.code_value gome_code, v2.code_value brand, T.machine_code, T.internal_machine_code1, 
+	T.apply_id, v6.name apply_unit, T.sequence, T.mileage, T.other_fee, T.customer_name, T.customer_phone, 
+	T.customer_address, T.machine_type, v1.code_value gome_code, T.brand, T.machine_code, T.internal_machine_code1, 
 	T.internal_machine_code2, T.external_machine_code, T.buy_date, T.install_man, T.install_date, 
 	v3.code_value status, v4.code_value is_center_check_agree, T.center_check_comment, T.center_check_man, T.center_check_date, 
 	v5.code_value is_headquarters_check_agree, T.headquarters_check_comment, T.headquarters_check_man, 
@@ -146,17 +146,19 @@
 	T.create_position
 	FROM hx_service_long_distance T
 	LEFT JOIN v_code v1 ON v1.code_id='gmdm' AND T.gome_code=v1.code_key
-	LEFT JOIN v_code v2 ON v2.code_id='pp' AND T.brand=v2.code_key
+	<!-- LEFT JOIN v_code v2 ON v2.code_id='pp' AND T.brand=v2.code_key -->
 	LEFT JOIN v_code v3 ON v3.code_id='djzt' AND T.status=v3.code_key
 	LEFT JOIN v_code v4 ON v4.code_id='sf' AND T.is_center_check_agree=v4.code_key
 	LEFT JOIN v_code v5 ON v5.code_id='sf' AND T.is_headquarters_check_agree=v5.code_key
-	LEFT JOIN (SELECT org_code,org_name FROM hx_organization WHERE org_type = '02' OR org_type = '03' 
-	UNION SELECT CONCAT(CONCAT(azwd01,'_'),gsxx01) AS org_code,wdmc AS org_name FROM crm_website) v6 ON v6.org_code=T.apply_unit
+	LEFT JOIN (SELECT cw.azwd01 AS CODE,cw.wdmc AS NAME FROM crm_website cw UNION 
+	SELECT ho.org_code AS CODE ,ho.org_name AS NAME FROM hx_organization ho WHERE ho.org_type='02' OR org_type='03' UNION 
+	SELECT es.WERKS CODE,es.NAME1 NAME FROM ecc_store es WHERE es.VKORG LIKE 'S%') v6 ON v6.code=T.apply_unit
 	LEFT JOIN hx_user_unload v9 ON v9.user_login_name = T.create_man_s
 	LEFT JOIN hx_user_unload v10 ON v10.user_login_name = T.alter_man_s
 	LEFT JOIN v_organization v7 ON v7.id=T.create_organization_s
 	LEFT JOIN v_organization v8 ON v8.id=T.alter_organization_s
 	WHERE 1=1
+	<if test="param.createOrganization != null and param.createOrganization !=''">and FIND_IN_SET(T.create_organization_s,#{param.createOrganization})</if>
 	<if test="param.applyId != null and param.applyId !=''">and T.apply_id like CONCAT('%',#{param.applyId},'%')</if>
 	<if test="param.applyUnit != null and param.applyUnit !=''">and T.apply_unit like CONCAT('%',#{param.applyUnit},'%')</if>
 	<if test="param.mileage != null and param.mileage !=''">and T.mileage like CONCAT('%',#{param.mileage},'%')</if>
@@ -182,7 +184,7 @@
   <select id="selectDistanceApplyById" parameterType="java.lang.String" resultMap="BaseResultMap">
   	SELECT 
 	T.apply_id, v6.org_name apply_unit, T.sequence, T.mileage, T.other_fee, T.customer_name, T.customer_phone, 
-	T.customer_address, T.machine_type, v1.code_value gome_code, v2.code_value brand, T.machine_code, T.internal_machine_code1, 
+	T.customer_address, T.machine_type, v1.code_value gome_code, T.brand, T.machine_code, T.internal_machine_code1, 
 	T.internal_machine_code2, T.external_machine_code, T.buy_date, T.install_man, T.install_date, 
 	v3.code_value status, v4.code_value is_center_check_agree, T.center_check_comment, T.center_check_man, T.center_check_date, 
 	v5.code_value is_headquarters_check_agree, T.headquarters_check_comment, T.headquarters_check_man, 
@@ -191,7 +193,7 @@
 	T.create_position
 	FROM hx_service_long_distance T
 	LEFT JOIN v_code v1 ON v1.code_id='gmdm' AND T.gome_code=v1.code_key
-	LEFT JOIN v_code v2 ON v2.code_id='pp' AND T.brand=v2.code_key
+	<!-- LEFT JOIN v_code v2 ON v2.code_id='pp' AND T.brand=v2.code_key -->
 	LEFT JOIN v_code v3 ON v3.code_id='djzt' AND T.status=v3.code_key
 	LEFT JOIN v_code v4 ON v4.code_id='sf' AND T.is_center_check_agree=v4.code_key
 	LEFT JOIN v_code v5 ON v5.code_id='sf' AND T.is_headquarters_check_agree=v5.code_key

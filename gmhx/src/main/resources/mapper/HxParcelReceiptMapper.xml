@@ -67,10 +67,10 @@
 			and t.carrier_unit like CONCAT('%',#{param.carrierUnit},'%')
 		</if>
 		<if test="param.updateDate_sta !=null and param.updateDate_sta != '' ">
-		   <![CDATA[ and t.update_date >=#{param.updateDate_sta} ]]>
+		   <![CDATA[ and DATA_FORMAT(t.update_date,'%Y-%m-%d') >=#{param.updateDate_sta} ]]>
 		</if>
 		<if test="param.updateDate_end !=null and param.updateDate_end != '' ">
-		   <![CDATA[ and t.update_date <=#{param.updateDate_end} ]]>
+		   <![CDATA[ and DATA_FORMAT(t.update_date,'%Y-%m-%d') <=#{param.updateDate_end} ]]>
 		</if>
 		<if test="param.fittingPositionId != null">
 			and t.fitting_position_id =#{param.fittingPositionId}

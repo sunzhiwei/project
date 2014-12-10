@@ -26,18 +26,18 @@
 				stock.stock,
 				')'
 			) AS availableStock,
-			IFNULL((CASE WHEN stock.type = 0 THEN
+			IFNULL((CASE WHEN stock.type = 1 THEN
 					detail.cost
-				WHEN stock.type = 1 THEN
-					detail.branch_price
 				WHEN stock.type = 2 THEN
+					detail.branch_price
+				WHEN stock.type = 3 THEN
 					detail.network_price
 				END),0) price,
-			IFNULL((CASE WHEN stock.type = 0 THEN
+			IFNULL((CASE WHEN stock.type = 1 THEN
 					detail.cost * stock.stock
-				WHEN stock.type = 1 THEN
-					detail.branch_price * stock.stock
 				WHEN stock.type = 2 THEN
+					detail.branch_price * stock.stock
+				WHEN stock.type = 3 THEN
 					detail.network_price * stock.stock
 				END),0) totalPrice
 		FROM
@@ -72,8 +72,8 @@
 	<update id="updateHxCurrentStock" parameterType="com.gome.gmhx.entity.HxCurrentStock">
     update hx_current_stock
     <set>
-    	<if test="stock != null and stock != ''"> stock = #{stock},</if>
-    	<if test="countWay != null and countWay != ''"> count_way = #{countWay},</if>
+    	<if test="stock != null"> stock = #{stock,jdbcType=INTEGER},</if>
+    	<if test="countWay != null"> count_way = #{countWay,jdbcType=INTEGER},</if>
     </set>
     where org_id = #{orgId} and fitting_code = #{fittingCode} and is_new = #{isNew}
   </update>

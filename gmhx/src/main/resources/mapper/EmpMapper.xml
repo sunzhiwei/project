@@ -165,8 +165,8 @@
   </update>
   
   <select id="selectCountByPostCodeAndState" parameterType="string" resultType="java.lang.Integer" >
-    select count(*) from hx_position where state ='1'
-    and postcode = #{positioncode,jdbcType=VARCHAR}
+    select count(*) from hx_position where 0=0 
+    and position_code = #{positioncode,jdbcType=VARCHAR}
   </select>
   
   <select id="getResetPassword" resultMap="accountResultMap" parameterType="java.lang.String" >

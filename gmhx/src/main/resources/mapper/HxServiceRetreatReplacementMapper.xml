@@ -174,8 +174,8 @@
 	apply_id, sequence, apply_unit, sell_subsection, sell_store,v1.code_value is_presale,v2.code_value is_onwall, customer_name, 
     customer_phone, customer_address, buy_date, fault_date,v4.code_value retreat_replacement,v3.code_value rr_mode, 
     fault_code, fault_reason, fault_reason_detail, install_unit, install_date, intaller, 
-    delivery_order_num, old_machine_type,v5.code_value old_gome_code,v6.code_value old_brand, old_machine_code, 
-    old_inner_code1, old_inner_code2, old_outer_code, machine_type,v7.code_value gome_code,v8.code_value brand, 
+    delivery_order_num, old_machine_type,v5.code_value old_gome_code, old_brand, old_machine_code, 
+    old_inner_code1, old_inner_code2, old_outer_code, machine_type,v7.code_value gome_code, brand, 
     machine_code, inner_code1, inner_code2, outer_code, rr_date, is_ic_back, record_time, 
     status, is_stored, appraiser, check_result, machine_check_fault_reason, center_check_result, 
     center_check_comment, center_check_man, center_check_time, headquarters_check_result, 
@@ -188,10 +188,11 @@
 	LEFT JOIN v_code v3 ON v3.code_id='thms' AND T.rr_mode=v3.code_key
 	LEFT JOIN v_code v4 ON v4.code_id='thj' AND T.retreat_replacement=v4.code_key
 	LEFT JOIN v_code v5 ON v5.code_id='gmdm' AND T.old_gome_code=v5.code_key
-	LEFT JOIN v_code v6 ON v6.code_id='pp' AND T.old_brand=v6.code_key
+	<!-- LEFT JOIN v_code v6 ON v6.code_id='pp' AND T.old_brand=v6.code_key -->
 	LEFT JOIN v_code v7 ON v7.code_id='gmdm' AND T.gome_code=v7.code_key
-	LEFT JOIN v_code v8 ON v8.code_id='pp' AND T.brand=v8.code_key
+	<!-- LEFT JOIN v_code v8 ON v8.code_id='pp' AND T.brand=v8.code_key -->
   	where 1=1
+  	<if test="param.createOrganization != null and param.createOrganization !=''">and FIND_IN_SET(create_organization,#{param.createOrganization})</if>
   	<if test="param.applyId != null and param.applyId != ''">and apply_id like CONCAT('%',#{param.applyId},'%')</if>
   	<if test="param.applyUnit != null and param.applyUnit != ''">and apply_unit like CONCAT('%',#{param.applyUnit},'%')</if>
   	<if test="param.sellSubsection != null and param.sellSubsection != ''">and sell_subsection like CONCAT('%',#{param.sellSubsection},'%')</if>

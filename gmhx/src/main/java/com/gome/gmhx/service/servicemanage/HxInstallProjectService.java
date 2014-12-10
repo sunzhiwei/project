@@ -17,7 +17,7 @@ public interface HxInstallProjectService {
 
 	List<Map<String, Object>> getProjects(String productId);
 
-	void updateInstallProject(HxServiceTicketVO serviceTicketVO,SysUser sysUser);
+	String updateInstallProject(HxServiceTicketVO serviceTicketVO,SysUser sysUser);
 
 	void deleteServiceInstallReceipt(String serviceId);
 

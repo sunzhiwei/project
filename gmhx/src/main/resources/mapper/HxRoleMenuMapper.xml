@@ -139,15 +139,16 @@
   </insert>
   
   <select id="getHxRoleAuthorityExport" parameterType="com.gome.gmhx.entity.HxRole" resultType="hashmap">
-  select r.role_name as roleName,r.role_desc as roleDesc,m.menu_name as menuName,fa.fitting_auth_name as fittingAuthName from hx_role r LEFT JOIN hx_role_menu em on r.role_id=em.role_id  LEFT JOIN hx_menu m ON em.menu_id=m.menu_id and m.is_leaf_node=0
+  select roleName,roleDesc,GROUP_CONCAT(menuName) as menuName,GROUP_CONCAT(fittingAuthName) as fittingAuthName from  (select r.role_name as roleName,r.role_desc as roleDesc,m.menu_name as menuName,fa.fitting_auth_name as fittingAuthName from hx_role r LEFT JOIN hx_role_menu em on r.role_id=em.role_id  LEFT JOIN hx_menu m ON em.menu_id=m.menu_id 
 LEFT JOIN hx_role_fitting rf ON rf.role_id=r.role_id LEFT JOIN  hx_fitting_auth fa on fa.fitting_auth_id=rf.fitting_auth_id
-where 1=1 and m.is_leaf_node='1'
+where 1=1 
 	  <if test="roleName != null  and roleName != ''">
 		   and r.role_name like CONCAT('%',#{roleName},'%')
 		</if>
 		<if test="roleId != null and roleId != ''">
 		   and r.role_Id like CONCAT('%',#{roleId},'%')
 		</if>
+		) t GROUP BY roleName,roleDesc
 	 </select>
   
 </mapper>

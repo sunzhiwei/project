@@ -178,11 +178,6 @@
     create_time_s, alter_man_s, alter_organization_s, alter_time_s, process_instance_id, 
     applicant, apply_date,service_unit,create_position,is_pass_check
   </sql>
-  <select id="getWD" resultType="hashmap">
-  	SELECT org_code,org_name FROM hx_organization WHERE org_type = '02' OR org_type = '03'
-	UNION
-	SELECT CONCAT(CONCAT(azwd01,'_'),gsxx01) AS org_code,wdmc AS org_name FROM crm_website 
-  </select>
   <select id="getExistWD" resultType="hashmap" parameterType="java.util.Date">
   	SELECT TM.serviceUnit,TM.createTime,EXTRACT(YEAR_MONTH FROM TM.createTime) ym,O.org_name unitName FROM
 	(SELECT create_organization_s serviceUnit,create_time_s createTime FROM hx_service_ticket T 
@@ -200,9 +195,6 @@
 	UNION
 	SELECT CONCAT(CONCAT(azwd01,'_'),gsxx01) AS org_code,wdmc AS org_name FROM crm_website) O ON O.org_code = TM.serviceUnit
 	GROUP BY TM.serviceUnit
-  </select>
-  <select id="getServiceUnit" resultType="hashmap" parameterType="java.lang.String">
-  	SELECT gsxx01 serviceUnit,shgsmc unitName FROM v_website_mapping WHERE azwd01 = #{wd,jdbcType=VARCHAR}
   </select>
   <select id="getMaxSequence" resultType="Integer">
   	SELECT MAX(sequence) FROM hx_service_ticket WHERE STR_TO_DATE(create_time_s,'%Y-%m-%d')=CURDATE()
@@ -248,7 +240,7 @@
 	T.headquarters_check_man, T.headquarters_check_time, T.headquarters_check_comment, T.check_result, 
 	T.recall_man, T.recall_result, T.recall_time, T.is_clear, T.service_status, T.center, T.website, 
 	T.comment_s, T.create_man_s, (SELECT NAME FROM hx_organization_unload WHERE id = T.create_organization_s) create_organization_s,
-	T.create_time_s, T.alter_man_s, T.alter_organization_s, T.alter_time_s,T.service_unit,T.create_position,
+	T.create_time_s, T.alter_man_s,(SELECT NAME FROM hx_organization_unload WHERE id = T.alter_organization_s) alter_organization_s, T.alter_time_s,T.service_unit,T.create_position,
 	T1.product_id, T1.install_card_num, T1.delivery_order_num, T1.install_num, T1.machine_type, 
 	T1.gome_code, T1.brand, T1.machine_code, T1.internal_machine_code1, T1.internal_machine_code2, T1.external_machine_code, 
 	T1.ticket_num, T1.invoice_num, T1.buyer, T1.buy_date, T1.install_date, T1.install_unit, T1.sale_center, 
@@ -281,10 +273,10 @@
 	T.headquarters_check_man, T.headquarters_check_time, T.headquarters_check_comment, v7.code_value check_result, 
 	T.recall_man, v12.code_value recall_result, T.recall_time, T.is_clear,T.service_status, (SELECT NAME FROM hx_organization_unload WHERE id = T.center) center, T.website, 
 	T.comment_s, T.create_man_s,(SELECT NAME FROM hx_organization_unload WHERE id = T.create_organization_s) create_organization_s,
-	T.create_time_s, T.alter_man_s, T.alter_organization_s, T.alter_time_s,T.service_unit,T.create_position,
+	T.create_time_s, T.alter_man_s,(SELECT NAME FROM hx_organization_unload WHERE id = T.alter_organization_s) alter_organization_s, T.alter_time_s,T.service_unit,T.create_position,
 	T1.product_id, T1.install_card_num, T1.delivery_order_num, T1.install_num, T1.machine_type, 
-	v1.code_value gome_code, v2.code_value brand, T1.machine_code, T1.internal_machine_code1, T1.internal_machine_code2, T1.external_machine_code, 
-	T1.ticket_num, T1.invoice_num, T1.buyer, T1.buy_date, T1.install_date, T1.install_unit, T1.sale_center, 
+	v1.code_value gome_code, T1.brand, T1.machine_code, T1.internal_machine_code1, T1.internal_machine_code2, T1.external_machine_code, 
+	T1.ticket_num, T1.invoice_num, T1.buyer, T1.buy_date, T1.install_date, v14.wdmc install_unit, T1.sale_center, 
 	T1.sale_market, T1.sale_price, v4.code_value is_sale, T1.warranty, T1.install_province, T1.install_detail_address, 
 	T1.bargain_code, T1.project_name, T1.product_note, T1.create_man_p, T1.create_organization_p, T1.create_time_p, T1.alter_man_p, 
 	T1.alter_organization_p, T1.alter_time_p,
@@ -296,7 +288,7 @@
 	LEFT JOIN hx_service_product T1 ON T1.product_id = T.product_id
 	LEFT JOIN hx_service_customer T2 ON T2.customer_id = T.customer_id
 	LEFT JOIN v_code v1 ON v1.code_id='gmdm' AND T1.gome_code=v1.code_key
-	LEFT JOIN v_code v2 ON v2.code_id='pp' AND T1.brand=v2.code_key
+	<!-- LEFT JOIN v_code v2 ON v2.code_id='pp' AND T1.brand=v2.code_key -->
 	LEFT JOIN v_code v3 ON v3.code_id='khlb' AND T2.customer_type=v3.code_key
 	LEFT JOIN v_code v4 ON v4.code_id='sf' AND T1.is_sale=v4.code_key
 	LEFT JOIN v_code v5 ON v5.code_id='djlx' AND T.service_type=v5.code_key
@@ -305,6 +297,7 @@
 	LEFT JOIN v_code v11 ON v11.code_id='wxfs' AND T.repair_mode=v11.code_key
 	LEFT JOIN v_code v12 ON v12.code_id='hfjg' AND T.recall_result=v12.code_key
 	LEFT JOIN v_code v13 ON v13.code_id='wxpl' AND T.category=v13.code_key
+	LEFT JOIN crm_website v14 ON T1.install_unit=v14.azwd01
 	WHERE 1=1
 	<if test="param.serviceType != null and param.serviceType !=''">and T.service_type like CONCAT('%',#{param.serviceType},'%')</if>
 	<if test="param.customerType != null and param.customerType !=''">and T2.customer_type like CONCAT('%',#{param.customerType},'%')</if>

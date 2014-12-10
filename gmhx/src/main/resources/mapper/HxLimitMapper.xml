@@ -158,10 +158,10 @@
 		   and limit_matter like CONCAT('%',#{param.limitMatter},'%')
 		</if>
 		<if test="param.ksrq != null and param.ksrq != ''">
-			<![CDATA[ and limit_operate_date >= #{param.ksrq}]]>
+			<![CDATA[ and DATE_FORMAT(limit_operate_date, '%Y-%m-%d') >= #{param.ksrq}]]>			
 		</if>
 		<if test="param.jsrq != null and param.jsrq != ''">
-			<![CDATA[ and limit_operate_date <= #{param.jsrq}]]>
+			<![CDATA[ and DATE_FORMAT(limit_operate_date, '%Y-%m-%d') <= #{param.ksrq}]]>	
 		</if>
 		<if test="param.limitId != null and param.limitId != ''">
 			and (limit_id = #{param.limitId} or limit_origin_id = #{param.limitId})

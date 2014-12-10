@@ -21,10 +21,12 @@
   </resultMap>
   
   <select id="getPositionPageList" parameterType="com.gome.common.page.Page" resultMap="BaseResultMap">
-		select t.position_code,t.position_name,t.position_type,t.org_id,t.from_type,t.position_origin,t.position_org_name,t.modify_date from (
+		select t.position_code,t.position_name,t.position_type,t.org_id,t.from_type,t.position_origin,t.position_org_name,t.modify_date,hr.role_name from (
 		select hp.position_code, hp.position_name, hp.position_type,hp.org_id,'0' as from_type,hp.position_origin,hou.name as position_org_name,hp.modify_date from hx_position hp left join hx_organization_unload hou on hp.org_id = hou.id
-		union select distinct(ep.positioncode) as position_code, ep.positionname as position_name,'0' as position_type,left(ep . positioncode, (length(ep . positioncode) - 10))  AS org_id,'1' as from_type,'gome' as position_origin,onebranchname as position_org_name,ep.modifydate as modify_date from emp_empposition  ep ) t
-		where 1=1
+		union select distinct(ep.positioncode) as position_code, ep.positionname as position_name,'0' as position_type,left(ep . positioncode, (length(ep . positioncode) - 10))  AS org_id,'1' as from_type,'gome' as position_origin,onebranchname as position_org_name,null as modify_date from emp_empposition  ep ) t
+		left join hx_position_role hpr on t.position_code = hpr.position_id
+		left join hx_role hr on hpr.role_id = hr.role_id
+ 		where 1=1
 		<if test="param.positionCode != null and param.positionCode != ''">
 		   and t.position_code like CONCAT('%',#{param.positionCode},'%')
 		</if>
@@ -40,8 +42,61 @@
 		<if test="param.positionType != null and param.positionType != ''">
 		   and t.position_type = #{param.positionType,jdbcType=VARCHAR}
 		</if>
+		<if test="param.roleId != null and param.roleId != ''">
+		   and hpr.role_id = #{param.roleId,jdbcType=VARCHAR}
+		</if>
 		order by t.modify_date desc
   </select>
+  
+    <select id="exportPositionRoleJbpmExcel" parameterType="com.gome.gmhx.entity.HxPosition" resultType="hashmap">
+  SELECT
+	t.position_name AS positionName,
+	hr.role_name AS roleName,
+	t.position_org_name as orgName,
+    t.jbpmRoleName
+FROM
+	(
+		SELECT
+			hp.position_code,
+			hp.position_name,
+			hp.position_origin,
+			hp.org_id,
+			hou. NAME AS position_org_name,
+      pm.jbpm_role_name as jbpmRoleName
+		FROM
+			hx_position hp
+		LEFT JOIN hx_organization_unload hou ON hp.org_id = hou.id
+    LEFT JOIN JBPM4_POSITION_MAPPING pm on pm.position_code=hp.position_code
+		UNION
+			SELECT DISTINCT
+				(ep.positioncode) AS position_code,
+				ep.positionname AS position_name,
+				'gome' AS position_origin,
+				left(ep . positioncode, (length(ep . positioncode) - 10))  AS org_id,
+				onebranchname AS position_org_name,
+        pm.jbpm_role_name as jbpmRoleName
+			FROM
+				emp_empposition ep
+     LEFT JOIN JBPM4_POSITION_MAPPING pm on pm.position_code=ep.positioncode
+	) t
+LEFT JOIN hx_position_role hpr ON t.position_code = hpr.position_id
+LEFT JOIN hx_role hr ON hpr.role_id = hr.role_id
+WHERE 1 = 1 AND t.position_origin = #{positionOrigin,jdbcType=VARCHAR}
+<if test="positionCode != null and positionCode != ''">
+		   and t.position_code like CONCAT('%',#{positionCode},'%')
+		</if>
+		<if test="positionName != null and positionName != ''">
+		   and t.position_name like CONCAT('%',#{positionName},'%')
+		</if>
+		<if test="orgId != null and orgId != ''">
+		   and t.org_id = #{orgId,jdbcType=VARCHAR}
+		</if>
+		<if test="roleId != null and roleId != ''">
+		   and hpr.role_id = #{roleId,jdbcType=VARCHAR}
+		</if>
+  </select>
+  
+  
   
   <select id="getPositionById" resultMap="BaseResultMap" parameterType="java.lang.String" >
     select hp.position_code,hp.position_name, hp.position_type,hp.org_id,'0' as from_type,hp.position_origin,hou.name as position_org_name,hpr.role_id,hr.role_name
@@ -56,6 +111,46 @@
     insert into hx_position (position_name,position_type,org_id,position_code,position_origin,modify_date)
     values (#{positionName,jdbcType=VARCHAR}, 
     #{positionType,jdbcType=VARCHAR}, #{orgId,jdbcType=VARCHAR}, #{positionCode,jdbcType=VARCHAR}, #{positionOrigin,jdbcType=VARCHAR},#{modifyDate,jdbcType=TIMESTAMP})
+  </insert>
+  
+    <insert id="insertPositionBatch" parameterType="java.util.List">
+     INSERT INTO hx_position (
+    position_code,position_name,org_id,position_origin,modify_date
+    )
+    VALUES
+    <foreach collection="list" item="item" separator=",">
+     (#{item.positionCode,jdbcType=VARCHAR},#{item.positionName,jdbcType=VARCHAR},
+      #{item.orgId,jdbcType=VARCHAR},#{item.positionOrigin,jdbcType=VARCHAR},#{item.modifyDate,jdbcType=TIMESTAMP})
+    </foreach>
+  </insert>
+  
+  <delete id = "deletePositionRoleByPositionIdBatch" parameterType = "java.util.List">  
+    <![CDATA[  
+       delete from hx_position_role where position_id in  
+    ]]>  
+    <foreach collection="list" item = "model" open="(" separator="," close=")">
+    #{model.positionCode}  
+    </foreach>  
+</delete> 
+
+ <insert id="insertPositionRoleBatch" parameterType="java.util.List">
+     INSERT INTO hx_position_role (
+    position_id,role_id
+    )
+    VALUES
+    <foreach collection="list" item="item" separator=",">
+     (#{item.positionCode,jdbcType=VARCHAR},#{item.roleId,jdbcType=VARCHAR})
+    </foreach>
+  </insert>
+  
+  <insert id="insertPositionMappingBatch" parameterType="java.util.List">
+     INSERT INTO JBPM4_POSITION_MAPPING (
+    id,jbpm_role_code,jbpm_role_name,position_code
+    )
+    VALUES
+    <foreach collection="list" item="item" separator=",">
+     (#{item.id,jdbcType=VARCHAR},#{item.jbpmRoleCode,jdbcType=VARCHAR},#{item.jbpmRoleName,jdbcType=VARCHAR},#{item.positionCode,jdbcType=VARCHAR})
+    </foreach>
   </insert>
   
  
@@ -215,4 +310,5 @@ select distinct emp.positionname as position_name,
       and position_id = #{_parameter,jdbcType=VARCHAR}
     </if>
   </delete>
+  
 </mapper>

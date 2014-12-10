@@ -49,7 +49,7 @@
 	
 	<select id="getFittingInfo" parameterType="hashmap" resultType="hashmap">
 		SELECT t.stock, t1.fitting_name fittingName, t1.spec,
-		case when t.type in (0,1) then t1.branch_price when t.type=2 then t1.network_price end price
+		case when t.type in (1,2) then t1.branch_price when t.type=3 then t1.network_price end price
 		FROM hx_current_stock t
 		LEFT JOIN hx_fitting_detail t1 ON t.fitting_code = t1.fitting_code
 		WHERE t.fitting_code = #{fittingId} AND org_id = #{orgId} AND is_new=#{isNew,jdbcType=BIT}
@@ -69,18 +69,6 @@
 		AND DATE_FORMAT(create_time, 'm-%d-%Y') = DATE_FORMAT(now(), 'm-%d-%Y')
 	</select>
 	
-	<select id="getInBatchNumber" resultType="string">
-		SELECT lpad(count(*) + 1, 6, '0')
-		where in_batch is not null
-		FROM hx_material_manage
-	</select>
-	
-	<select id="getOutBatchNumber" resultType="string">
-		SELECT lpad(count(*) + 1, 6, '0')
-		where out_batch is not null
-		FROM hx_material_manage
-	</select>
-	
 	<select id="getFatherFittingOrgId" parameterType="string" resultType="string">
 		select fitting_pid from hx_organization where org_code=#{fittingOrgId}
 	</select>
@@ -97,14 +85,32 @@
 					FROM hx_organization ho
 					WHERE ho.org_type = '02'
 						OR ho.org_type = '03'
+					UNION
+					SELECT es.WERKS AS org_code, es.VKORG AS gsxx01
+					FROM ecc_store es
+					WHERE es.VKORG LIKE 'S%'
 					) t
 				WHERE t.org_code = #{fittingOrgId}))
 	</select>
 	
 	<select id="getHxMaterialManage" parameterType="string" resultMap="BaseResultMap">
-		select 
-    	<include refid="Base_Column_List" />
-    	from hx_material_manage
+		select <include refid="Base_Column_List"/>
+    	from hx_material_manage 
+    	where list_number = #{listNumber,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="getHxMaterialManageShow" parameterType="string" resultMap="BaseResultMap">
+		select a.list_number, a.type, a.send_company,
+			a.receive_company, a.proposer,
+			a.apply_date, a.`comment`, a.customer_name, a.customer_tel,
+			a.address,a.status, a.fitting_org_id, v3.user_name create_person,
+			a.create_time, v4.user_name update_person,
+			a.update_time, a.process_instance_id, a.applicant,
+			a.send_number, a.fitting_position_id, a.move_direction, a.related_list_number,
+			a.in_batch, a.out_batch
+    	from hx_material_manage a
+    	LEFT JOIN hx_user_unload v3 on v3.user_login_name = a.create_person
+		LEFT JOIN hx_user_unload v4 on v4.user_login_name = a.update_person
     	where list_number = #{listNumber,jdbcType=VARCHAR}
 	</select>
 	
@@ -131,14 +137,11 @@
 		SELECT
 			a.list_number, a.type, v2.`name` send_company,
 			v.`name` receive_company, a.proposer,
-			a.apply_date, a.`comment`,
-			a.customer_name, a.customer_tel,
-			a.address, a.`status`, a.comment,
-			a.fitting_org_id, v3.user_name create_person,
+			a.apply_date, a.`comment`, a.customer_name, a.customer_tel,
+			a.address, t4.code_value status, a.fitting_org_id, v3.user_name create_person,
 			a.create_time, v4.user_name update_person,
 			a.update_time, a.process_instance_id, a.applicant,
-			a.send_number, a.fitting_position_id,
-			a.move_direction, a.related_list_number,
+			a.send_number, a.fitting_position_id, a.move_direction, a.related_list_number,
 			a.in_batch, a.out_batch
 		FROM
 			hx_material_manage a
@@ -146,6 +149,7 @@
 		LEFT JOIN hx_organization_unload v2 ON v2.id IS NOT NULL AND v2.id = a.send_company
 		LEFT JOIN hx_user_unload v3 on v3.user_login_name = a.create_person
 		LEFT JOIN hx_user_unload v4 on v4.user_login_name = a.update_person
+		LEFT JOIN v_code t4 on t4.code_id='djzt' and a.status=t4.code_key
 		WHERE
 			a.list_number = #{listNumber}	
 	</select>
@@ -185,7 +189,7 @@
 	
 	<select id="getHxMaterialDetailForUpdate" parameterType="string" resultType="hashmap">
 		select t.fitting_code fittingCode, t.suit_model suitModel, t1.fitting_name fittingName, t1.spec, IFNULL(t3.stock,0) stock,
-		CASE WHEN t2.type LIKE 'zb-%' OR t2.type LIKE 'fb-%' THEN t1.branch_price WHEN t2.type LIKE 'wd-%' THEN t1.network_price ELSE 0 END price,
+		case when t3.type in (1,2) then t1.branch_price when t3.type=3 then t1.network_price end price,
 		t.apply_count applyCount,  t.comment
 		from hx_material_detail t
 		LEFT JOIN hx_fitting_detail t1 ON t.fitting_code = t1.fitting_code
@@ -288,9 +292,9 @@
 		<if test="param.carrierUnit!= null and param.carrierUnit!= '' ">
 		   and a.carrier_unit like CONCAT('%',#{param.carrierUnit},'%')</if>
 		<if test="param.sendDate_sta !=null and param.sendDate_sta != '' ">
-		   <![CDATA[ and a.send_date >=#{param.sendDate_sta} ]]>   </if>        
+		   <![CDATA[ and DATE_FORMAT(a.send_date, '%Y-%m-%d') >= #{param.sendDate_sta}]]></if>
 		<if test="param.sendDate_end !=null and param.sendDate_end != '' ">
-		   <![CDATA[ and a.send_date <=#{param.sendDate_end} ]]>   </if>
+		   <![CDATA[ and DATE_FORMAT(a.send_date, '%Y-%m-%d') <= #{param.sendDate_end}]]> </if>
 		ORDER BY a.update_date DESC    
 	</select> 
 	
@@ -411,7 +415,7 @@
         fitting_position_id = #{fittingPositionId,jdbcType=VARCHAR},
       </if>
       <if test="sendNumber != null" >
-      	send_number = #{sendNumber, jdbcType=VARCHAR}
+      	send_number = #{sendNumber, jdbcType=VARCHAR},
       </if>
       <if test="moveDirection != null">
       	move_direction = #{moveDirection},
@@ -423,7 +427,7 @@
       	in_batch = #{inBatch},
       </if>
       <if test="outBatch != null">
-      	out_batch = #{outBatch},
+      	out_batch = #{outBatch}
       </if>
     </set>
     where list_number = #{listNumber,jdbcType=VARCHAR}
